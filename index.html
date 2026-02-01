@@ -1,639 +1,1291 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-BR" class="scroll-smooth">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Piscinas de Areia® - Central de Gestão</title>
+    <title>Obra 360° — Gestão Premium de Obras</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
     <script>
         tailwind.config = {
+            darkMode: 'class',
             theme: {
                 extend: {
                     fontFamily: {
-                        sans: ['Plus Jakarta Sans', 'sans-serif'],
+                        sans: ['Inter', '-apple-system', 'BlinkMacSystemFont', 'San Francisco', 'Segoe UI', 'sans-serif'],
                     },
                     colors: {
                         sand: {
-                            50: '#fdfbf7',
-                            100: '#f7f3e8',
-                            200: '#efe5c8',
-                            300: '#e6d2a0',
-                            400: '#dbb873',
-                            500: '#d4a35a',
-                            600: '#c78a40',
-                            700: '#a66d32',
-                            800: '#85582d',
-                            900: '#6c4826',
+                            50: '#fafaf9',
+                            100: '#f5f5f4',
+                            200: '#e7e5e4',
+                            300: '#d6d3d1',
+                            400: '#a8a29e',
+                            500: '#d4a373',
+                            600: '#bc8a5f',
+                            700: '#a47e53',
+                            800: '#8b6f47',
+                            900: '#735c3d',
                         },
                         ocean: {
                             50: '#f0f9ff',
                             100: '#e0f2fe',
+                            200: '#bae6fd',
+                            300: '#7dd3fc',
+                            400: '#38bdf8',
                             500: '#0ea5e9',
                             600: '#0284c7',
+                            700: '#0369a1',
+                            800: '#075985',
                             900: '#0c4a6e',
+                        },
+                        apple: {
+                            gray: '#f5f5f7',
+                            dark: '#1d1d1f',
                         }
+                    },
+                    boxShadow: {
+                        'apple': '0 2px 12px rgba(0, 0, 0, 0.08)',
+                        'apple-hover': '0 8px 30px rgba(0, 0, 0, 0.12)',
+                        'glass': '0 8px 32px rgba(0, 0, 0, 0.1)',
                     }
                 }
             }
         }
     </script>
+    
     <style>
         body {
-            background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
-            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
         }
-        .glass-card {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.8);
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.02), 0 10px 15px -3px rgba(0, 0, 0, 0.05);
-        }
-        .nav-item {
+        
+        /* Apple-style transitions */
+        .transition-apple {
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
-        .nav-item:hover {
-            background: linear-gradient(135deg, #f7f3e8 0%, #efe5c8 100%);
-            transform: translateX(4px);
+        
+        /* Glassmorphism */
+        .glass {
+            background: rgba(255, 255, 255, 0.72);
+            backdrop-filter: saturate(180%) blur(20px);
+            -webkit-backdrop-filter: saturate(180%) blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
         }
-        .nav-item.active {
-            background: linear-gradient(135deg, #d4a35a 0%, #c78a40 100%);
-            color: white;
-            box-shadow: 0 4px 12px rgba(212, 163, 90, 0.3);
+        
+        .dark .glass {
+            background: rgba(30, 30, 30, 0.72);
+            border: 1px solid rgba(255, 255, 255, 0.08);
         }
-        .progress-bar {
-            transition: width 1.2s cubic-bezier(0.4, 0, 0.2, 1);
+        
+        .glass-card {
+            background: rgba(255, 255, 255, 0.6);
+            backdrop-filter: blur(20px);
+            border: 0.5px solid rgba(0, 0, 0, 0.04);
+            box-shadow: 0 4px 24px rgba(0, 0, 0, 0.04);
         }
-        .chart-circle-progress {
-            transition: stroke-dashoffset 1.5s ease-out;
+        
+        .dark .glass-card {
+            background: rgba(40, 40, 40, 0.6);
+            border: 0.5px solid rgba(255, 255, 255, 0.06);
+            box-shadow: 0 4px 24px rgba(0, 0, 0, 0.2);
         }
-        .hover-lift {
-            transition: all 0.3s ease;
+        
+        /* Smooth scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
         }
-        .hover-lift:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-        }
-        .custom-scrollbar::-webkit-scrollbar {
-            width: 6px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-track {
+        ::-webkit-scrollbar-track {
             background: transparent;
         }
-        .custom-scrollbar::-webkit-scrollbar-thumb {
-            background: #d4a35a;
-            border-radius: 3px;
+        ::-webkit-scrollbar-thumb {
+            background: rgba(0, 0, 0, 0.15);
+            border-radius: 4px;
         }
-        .status-pill {
-            animation: pulse-soft 2s infinite;
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(0, 0, 0, 0.25);
         }
-        @keyframes pulse-soft {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.8; }
+        .dark ::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.15);
         }
-        .fade-in {
-            animation: fadeIn 0.5s ease-out;
-        }
-        @keyframes fadeIn {
+        
+        /* Animations */
+        @keyframes slideUp {
             from { opacity: 0; transform: translateY(20px); }
             to { opacity: 1; transform: translateY(0); }
         }
-        .money-counter {
-            font-variant-numeric: tabular-nums;
+        
+        @keyframes scaleIn {
+            from { opacity: 0; transform: scale(0.95); }
+            to { opacity: 1; transform: scale(1); }
+        }
+        
+        .animate-slide-up {
+            animation: slideUp 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+        }
+        
+        .animate-scale-in {
+            animation: scaleIn 0.4s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+        }
+        
+        .stagger-1 { animation-delay: 0.1s; }
+        .stagger-2 { animation-delay: 0.2s; }
+        .stagger-3 { animation-delay: 0.3s; }
+        .stagger-4 { animation-delay: 0.4s; }
+        
+        /* Custom toggle */
+        .toggle-checkbox:checked {
+            right: 0;
+            border-color: #d4a373;
+        }
+        .toggle-checkbox:checked + .toggle-label {
+            background-color: #d4a373;
+        }
+        
+        /* Progress bar animation */
+        .progress-fill {
+            transition: width 1.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        /* Apple-style button press */
+        .btn-press:active {
+            transform: scale(0.96);
+        }
+        
+        /* Chart container */
+        .chart-container {
+            position: relative;
+            height: 100%;
+            width: 100%;
         }
     </style>
 </head>
-<body class="text-slate-800 antialiased overflow-hidden">
+<body class="bg-apple-gray dark:bg-black text-gray-900 dark:text-gray-100 antialiased overflow-hidden selection:bg-sand-500 selection:text-white">
 
-    <!-- Login Overlay -->
-    <div id="loginScreen" class="fixed inset-0 z-50 flex items-center justify-center bg-gradient-to-br from-sand-100 to-slate-100">
-        <div class="glass-card p-8 rounded-3xl w-full max-w-md shadow-2xl transform transition-all hover:scale-[1.01]">
-            <div class="text-center mb-8">
-                <div class="w-20 h-20 bg-gradient-to-br from-sand-400 to-sand-600 rounded-2xl mx-auto flex items-center justify-center shadow-lg mb-4 rotate-3 hover:rotate-6 transition-transform">
-                    <i data-lucide="waves" class="w-10 h-10 text-white"></i>
+    <!-- Login Screen -->
+    <div id="loginScreen" class="fixed inset-0 z-50 flex items-center justify-center bg-gradient-to-br from-sand-100 via-white to-ocean-50 dark:from-gray-900 dark:via-gray-950 dark:to-slate-950 transition-opacity duration-500">
+        <div class="w-full max-w-md px-8">
+            <div class="glass rounded-3xl p-10 shadow-2xl animate-scale-in">
+                <div class="text-center mb-10">
+                    <div class="w-20 h-20 mx-auto mb-6 rounded-3xl bg-gradient-to-br from-sand-400 to-sand-600 flex items-center justify-center shadow-xl">
+                        <i data-lucide="waves" class="w-10 h-10 text-white"></i>
+                    </div>
+                    <h1 class="text-3xl font-semibold tracking-tight mb-2 bg-gradient-to-r from-sand-700 to-sand-500 bg-clip-text text-transparent dark:from-sand-400 dark:to-sand-200">Obra 360°</h1>
+                    <p class="text-gray-500 dark:text-gray-400 text-sm font-medium">Sistema de Gestão Premium</p>
                 </div>
-                <h1 class="text-2xl font-bold text-slate-900 mb-1">Piscinas de Areia®</h1>
-                <p class="text-sand-700 text-sm">Sistema de Gestão de Obras de Luxo</p>
+
+                <div class="space-y-4">
+                    <div class="relative group">
+                        <input type="email" id="loginEmail" value="gustavo@piscinasdeareia.com.br" 
+                            class="w-full px-5 py-4 bg-white/50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 rounded-2xl text-sm focus:outline-none focus:ring-2 focus:ring-sand-500/50 transition-all placeholder-gray-400 dark:text-white"
+                            placeholder="Email">
+                        <i data-lucide="mail" class="w-5 h-5 absolute right-4 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                    </div>
+                    
+                    <div class="relative group">
+                        <input type="password" value="senha-segura-2026" 
+                            class="w-full px-5 py-4 bg-white/50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 rounded-2xl text-sm focus:outline-none focus:ring-2 focus:ring-sand-500/50 transition-all placeholder-gray-400 dark:text-white"
+                            placeholder="Senha">
+                        <i data-lucide="lock" class="w-5 h-5 absolute right-4 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                    </div>
+
+                    <button onclick="enterApp()" class="w-full mt-6 py-4 bg-gradient-to-r from-sand-500 to-sand-700 hover:from-sand-600 hover:to-sand-800 text-white font-medium rounded-2xl shadow-lg shadow-sand-500/25 transition-all btn-press flex items-center justify-center gap-2 group">
+                        <span>Acessar Sistema</span>
+                        <i data-lucide="arrow-right" class="w-5 h-5 group-hover:translate-x-1 transition-transform"></i>
+                    </button>
+
+                    <div class="flex items-center justify-between mt-6 text-xs text-gray-500 dark:text-gray-400">
+                        <label class="flex items-center gap-2 cursor-pointer">
+                            <input type="checkbox" checked class="w-4 h-4 rounded border-gray-300 text-sand-600 focus:ring-sand-500">
+                            <span>Lembrar-me</span>
+                        </label>
+                        <a href="#" class="hover:text-sand-600 dark:hover:text-sand-400 transition-colors">Esqueceu a senha?</a>
+                    </div>
+                </div>
             </div>
             
-            <div class="space-y-4">
-                <div class="relative">
-                    <i data-lucide="user" class="w-5 h-5 absolute left-4 top-1/2 -translate-y-1/2 text-sand-500"></i>
-                    <input type="email" value="rodrigo@piscinasdeareia.com.br" class="w-full pl-12 pr-4 py-3 bg-white border border-sand-200 rounded-xl text-slate-700 focus:outline-none focus:ring-2 focus:ring-sand-400 focus:border-transparent transition-all" placeholder="Email">
-                </div>
-                <div class="relative">
-                    <i data-lucide="lock" class="w-5 h-5 absolute left-4 top-1/2 -translate-y-1/2 text-sand-500"></i>
-                    <input type="password" value="obrareal2024" class="w-full pl-12 pr-4 py-3 bg-white border border-sand-200 rounded-xl text-slate-700 focus:outline-none focus:ring-2 focus:ring-sand-400 focus:border-transparent transition-all" placeholder="Senha">
-                </div>
-                <button onclick="enterDashboard()" class="w-full py-3.5 bg-gradient-to-r from-sand-500 to-sand-700 hover:from-sand-600 hover:to-sand-800 text-white font-semibold rounded-xl shadow-lg shadow-sand-500/30 transition-all transform active:scale-[0.98] flex items-center justify-center gap-2">
-                    <span>Acessar Central</span>
-                    <i data-lucide="arrow-right" class="w-5 h-5"></i>
-                </button>
-            </div>
-            
-            <div class="mt-6 pt-6 border-t border-sand-200 text-center">
-                <p class="text-xs text-slate-500 mb-2">Acesso exclusivo para construtoras credenciadas</p>
-                <div class="flex items-center justify-center gap-2 text-xs text-sand-600">
-                    <i data-lucide="shield-check" class="w-4 h-4"></i>
-                    <span>Conexão segura SSL</span>
+            <div class="mt-8 text-center">
+                <p class="text-xs text-gray-400 mb-4">Licenciado para:</p>
+                <div class="flex items-center justify-center gap-3 opacity-50 hover:opacity-100 transition-opacity">
+                    <div class="h-px w-12 bg-gradient-to-r from-transparent to-gray-300"></div>
+                    <span class="text-sm font-medium text-gray-600 dark:text-gray-400 tracking-wide">PIscINASDEAREIA.COM.BR</span>
+                    <div class="h-px w-12 bg-gradient-to-l from-transparent to-gray-300"></div>
                 </div>
             </div>
         </div>
     </div>
 
     <!-- Main Application -->
-    <div id="app" class="hidden h-screen flex">
+    <div id="mainApp" class="hidden h-screen flex flex-col md:flex-row">
         
         <!-- Sidebar -->
-        <aside class="w-20 lg:w-72 bg-white border-r border-sand-200 flex flex-col shadow-xl z-20">
-            <!-- Logo -->
-            <div class="h-20 flex items-center px-6 border-b border-sand-100">
+        <aside class="w-full md:w-72 bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl border-r border-gray-200/50 dark:border-gray-800/50 flex flex-col z-40">
+            <div class="p-6 border-b border-gray-200/50 dark:border-gray-800/50 flex items-center justify-between">
                 <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 bg-gradient-to-br from-sand-400 to-sand-600 rounded-xl flex items-center justify-center shadow-lg">
-                        <i data-lucide="waves" class="w-6 h-6 text-white"></i>
+                    <div class="w-10 h-10 rounded-2xl bg-gradient-to-br from-sand-400 to-sand-600 flex items-center justify-center shadow-lg">
+                        <i data-lucide="waves" class="w-5 h-5 text-white"></i>
                     </div>
-                    <div class="hidden lg:block">
-                        <h2 class="font-bold text-slate-900 leading-tight text-lg">Piscinas de Areia</h2>
-                        <p class="text-xs text-sand-600 font-medium">Gestão Premium</p>
+                    <div class="hidden md:block">
+                        <h1 class="font-semibold text-lg tracking-tight text-gray-900 dark:text-white">Obra 360°</h1>
+                        <p class="text-xs text-sand-600 dark:text-sand-400 font-medium">Premium</p>
                     </div>
                 </div>
+                <button onclick="toggleMobileMenu()" class="md:hidden p-2 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
+                    <i data-lucide="menu" class="w-6 h-6"></i>
+                </button>
             </div>
 
-            <!-- Navigation -->
-            <nav class="flex-1 py-6 px-3 space-y-2 overflow-y-auto custom-scrollbar">
-                <button onclick="switchTab('dashboard')" class="nav-item active w-full flex items-center gap-4 px-4 py-3.5 rounded-xl text-sm font-semibold text-left group">
-                    <i data-lucide="layout-dashboard" class="w-5 h-5 flex-shrink-0"></i>
-                    <span class="hidden lg:block">Visão Geral</span>
-                </button>
-                
-                <button onclick="switchTab('obras')" class="nav-item w-full flex items-center gap-4 px-4 py-3.5 rounded-xl text-slate-600 text-sm font-semibold text-left group">
-                    <i data-lucide=" construction" class="w-5 h-5 flex-shrink-0"></i>
-                    <span class="hidden lg:block">Obras Ativas</span>
-                    <span class="hidden lg:flex ml-auto bg-sand-500 text-white text-xs font-bold px-2.5 py-1 rounded-full">5</span>
-                </button>
-                
-                <button onclick="switchTab('leads')" class="nav-item w-full flex items-center gap-4 px-4 py-3.5 rounded-xl text-slate-600 text-sm font-semibold text-left group">
-                    <i data-lucide="crown" class="w-5 h-5 flex-shrink-0"></i>
-                    <span class="hidden lg:block">Leads Premium</span>
-                    <span class="hidden lg:flex ml-auto bg-emerald-500 text-white text-xs font-bold px-2.5 py-1 rounded-full animate-pulse">3 Hot</span>
-                </button>
-                
-                <button onclick="switchTab('financeiro')" class="nav-item w-full flex items-center gap-4 px-4 py-3.5 rounded-xl text-slate-600 text-sm font-semibold text-left group">
-                    <i data-lucide="wallet" class="w-5 h-5 flex-shrink-0"></i>
-                    <span class="hidden lg:block">Financeiro</span>
-                </button>
-                
-                <button onclick="switchTab('equipe')" class="nav-item w-full flex items-center gap-4 px-4 py-3.5 rounded-xl text-slate-600 text-sm font-semibold text-left group">
-                    <i data-lucide="users" class="w-5 h-5 flex-shrink-0"></i>
-                    <span class="hidden lg:block">Equipe Técnica</span>
-                </button>
-                
-                <button onclick="switchTab('calendario')" class="nav-item w-full flex items-center gap-4 px-4 py-3.5 rounded-xl text-slate-600 text-sm font-semibold text-left group">
-                    <i data-lucide="calendar-clock" class="w-5 h-5 flex-shrink-0"></i>
-                    <span class="hidden lg:block">Agenda de Visitas</span>
+            <nav class="flex-1 overflow-y-auto p-4 space-y-1">
+                <button onclick="switchTab('dashboard')" data-tab="dashboard" class="nav-item w-full flex items-center gap-3 px-4 py-3.5 rounded-2xl text-sm font-medium transition-apple bg-sand-50 text-sand-800 dark:bg-sand-500/20 dark:text-sand-300">
+                    <i data-lucide="layout-grid" class="w-5 h-5"></i>
+                    <span class="hidden md:block">Visão Geral</span>
                 </button>
 
-                <div class="pt-6 mt-6 border-t border-sand-200">
-                    <p class="hidden lg:block px-4 text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Integrações</p>
+                <button onclick="switchTab('obras')" data-tab="obras" class="nav-item w-full flex items-center gap-3 px-4 py-3.5 rounded-2xl text-sm font-medium text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-apple">
+                    <i data-lucide="hard-hat" class="w-5 h-5"></i>
+                    <span class="hidden md:block">Obras</span>
+                    <span class="hidden md:flex ml-auto bg-sand-100 text-sand-700 text-xs font-bold px-2.5 py-1 rounded-full dark:bg-sand-900 dark:text-sand-300">5</span>
+                </button>
+
+                <button onclick="switchTab('leads')" data-tab="leads" class="nav-item w-full flex items-center gap-3 px-4 py-3.5 rounded-2xl text-sm font-medium text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-apple">
+                    <i data-lucide="crown" class="w-5 h-5"></i>
+                    <span class="hidden md:block">Leads VIP</span>
+                    <span class="hidden md:flex ml-auto bg-red-100 text-red-700 text-xs font-bold px-2.5 py-1 rounded-full animate-pulse">3 Hot</span>
+                </button>
+
+                <button onclick="switchTab('financeiro')" data-tab="financeiro" class="nav-item w-full flex items-center gap-3 px-4 py-3.5 rounded-2xl text-sm font-medium text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-apple">
+                    <i data-lucide="wallet" class="w-5 h-5"></i>
+                    <span class="hidden md:block">Financeiro</span>
+                </button>
+
+                <button onclick="switchTab('equipe')" data-tab="equipe" class="nav-item w-full flex items-center gap-3 px-4 py-3.5 rounded-2xl text-sm font-medium text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-apple">
+                    <i data-lucide="users" class="w-5 h-5"></i>
+                    <span class="hidden md:block">Equipe</span>
+                </button>
+
+                <button onclick="switchTab('calendario')" data-tab="calendario" class="nav-item w-full flex items-center gap-3 px-4 py-3.5 rounded-2xl text-sm font-medium text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-apple">
+                    <i data-lucide="calendar-days" class="w-5 h-5"></i>
+                    <span class="hidden md:block">Agenda</span>
+                </button>
+
+                <div class="pt-6 mt-6 border-t border-gray-200/50 dark:border-gray-800/50">
+                    <p class="hidden md:block px-4 text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">Integrações</p>
                     <div class="space-y-1">
-                        <div class="flex items-center gap-3 px-4 py-2 text-sm text-slate-600">
-                            <div class="w-2 h-2 bg-emerald-500 rounded-full status-pill"></div>
-                            <span class="hidden lg:block">WhatsApp Business</span>
+                        <div class="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-600 dark:text-gray-400">
+                            <div class="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></div>
+                            <span class="hidden md:block">WhatsApp Business</span>
                         </div>
-                        <div class="flex items-center gap-3 px-4 py-2 text-sm text-slate-600">
-                            <div class="w-2 h-2 bg-emerald-500 rounded-full status-pill"></div>
-                            <span class="hidden lg:block">Google Calendar</span>
+                        <div class="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-600 dark:text-gray-400">
+                            <div class="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></div>
+                            <span class="hidden md:block">Google Calendar</span>
                         </div>
-                        <div class="flex items-center gap-3 px-4 py-2 text-sm text-slate-600">
-                            <div class="w-2 h-2 bg-emerald-500 rounded-full status-pill"></div>
-                            <span class="hidden lg:block">Fornecedores</span>
+                        <div class="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-600 dark:text-gray-400">
+                            <div class="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></div>
+                            <span class="hidden md:block">Sicoob API</span>
                         </div>
                     </div>
                 </div>
             </nav>
 
-            <!-- Profile -->
-            <div class="p-4 border-t border-sand-200">
-                <div class="glass-card p-4 rounded-2xl flex items-center gap-3">
-                    <img src="https://ui-avatars.com/api/?name=Rodrigo+Silva&background=d4a35a&color=fff" class="w-10 h-10 rounded-full border-2 border-white shadow-md">
-                    <div class="hidden lg:block flex-1 min-w-0">
-                        <p class="text-sm font-bold text-slate-900 truncate">Rodrigo Silva</p>
-                        <p class="text-xs text-sand-600">Gerente Comercial</p>
+            <div class="p-4 border-t border-gray-200/50 dark:border-gray-800/50">
+                <div class="glass-card p-3 rounded-2xl flex items-center gap-3">
+                    <img src="https://ui-avatars.com/api/?name=Gustavo&background=d4a373&color=fff" class="w-10 h-10 rounded-full border-2 border-white dark:border-gray-700 shadow-sm">
+                    <div class="hidden md:block flex-1 min-w-0">
+                        <p class="text-sm font-semibold text-gray-900 dark:text-white truncate">Gustavo</p>
+                        <p class="text-xs text-gray-500 dark:text-gray-400 truncate">gustavo@piscinasdeareia.com.br</p>
                     </div>
-                    <button class="hidden lg:block p-1.5 hover:bg-sand-100 rounded-lg transition-colors text-slate-400">
+                    <button class="hidden md:block p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl transition-colors text-gray-400">
                         <i data-lucide="settings" class="w-4 h-4"></i>
                     </button>
                 </div>
             </div>
         </aside>
 
-        <!-- Main Content -->
-        <main class="flex-1 flex flex-col bg-slate-50/50 overflow-hidden relative">
-            <!-- Decorative Background Elements -->
-            <div class="absolute top-0 right-0 w-96 h-96 bg-gradient-to-bl from-sand-200/30 to-transparent rounded-full blur-3xl -z-10"></div>
-            <div class="absolute bottom-0 left-0 w-96 h-96 bg-gradient-to-tr from-ocean-100/40 to-transparent rounded-full blur-3xl -z-10"></div>
-
+        <!-- Content Area -->
+        <main class="flex-1 flex flex-col min-w-0 bg-gray-50/50 dark:bg-black relative">
             <!-- Header -->
-            <header class="h-20 bg-white/80 backdrop-blur-md border-b border-sand-200 flex items-center justify-between px-8 sticky top-0 z-10">
-                <div class="flex items-center gap-6">
-                    <h1 id="pageTitle" class="text-2xl font-bold text-slate-900">Visão Geral da Operação</h1>
-                    <span class="hidden md:flex items-center gap-2 px-3 py-1.5 bg-emerald-50 text-emerald-700 text-xs font-semibold rounded-full border border-emerald-200">
+            <header class="h-16 bg-white/50 dark:bg-gray-900/50 backdrop-blur-md border-b border-gray-200/50 dark:border-gray-800/50 flex items-center justify-between px-6 sticky top-0 z-30">
+                <div class="flex items-center gap-4">
+                    <h2 id="pageTitle" class="text-xl font-semibold text-gray-900 dark:text-white tracking-tight">Visão Geral</h2>
+                    <span class="hidden sm:flex items-center gap-2 px-3 py-1.5 bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 text-xs font-semibold rounded-full border border-emerald-200 dark:border-emerald-800">
                         <div class="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse"></div>
-                        Sistema Online • Última atualização: Agora
+                        Sistema Online
                     </span>
                 </div>
 
-                <div class="flex items-center gap-6">
-                    <!-- Quick Actions -->
-                    <button onclick="openNewLeadModal()" class="hidden md:flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-sand-500 to-sand-600 text-white text-sm font-semibold rounded-xl shadow-lg shadow-sand-500/25 hover:shadow-sand-500/40 transition-all transform hover:-translate-y-0.5">
+                <div class="flex items-center gap-4">
+                    <!-- Theme Toggle -->
+                    <button onclick="toggleTheme()" class="p-2.5 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors text-gray-600 dark:text-gray-400 relative">
+                        <i data-lucide="sun" class="w-5 h-5 hidden dark:block"></i>
+                        <i data-lucide="moon" class="w-5 h-5 block dark:hidden"></i>
+                    </button>
+
+                    <button class="hidden sm:flex items-center gap-2 px-4 py-2 bg-sand-500 hover:bg-sand-600 text-white text-sm font-medium rounded-full shadow-lg shadow-sand-500/25 transition-all btn-press">
                         <i data-lucide="plus" class="w-4 h-4"></i>
                         <span>Novo Lead</span>
                     </button>
 
-                    <div class="h-8 w-px bg-sand-200 hidden md:block"></div>
-
-                    <!-- Notifications -->
-                    <button class="relative p-2.5 text-slate-500 hover:text-sand-600 hover:bg-sand-50 rounded-xl transition-all">
+                    <button class="relative p-2.5 text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-all">
                         <i data-lucide="bell" class="w-5 h-5"></i>
-                        <span class="absolute top-1.5 right-1.5 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-white"></span>
+                        <span class="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full border-2 border-white dark:border-gray-900"></span>
                     </button>
                 </div>
             </header>
 
-            <!-- Content Area -->
-            <div class="flex-1 overflow-y-auto custom-scrollbar p-8">
-                
-                <!-- DASHBOARD TAB -->
-                <div id="tab-dashboard" class="fade-in space-y-6 max-w-7xl mx-auto">
-                    
-                    <!-- Alert Banner -->
-                    <div class="glass-card rounded-2xl p-5 border-l-4 border-amber-500 flex items-center justify-between shadow-lg">
-                        <div class="flex items-start gap-4">
-                            <div class="w-12 h-12 bg-amber-100 rounded-xl flex items-center justify-center flex-shrink-0">
-                                <i data-lucide="alert-triangle" class="w-6 h-6 text-amber-600"></i>
-                            </div>
-                            <div>
-                                <h3 class="font-bold text-slate-900 mb-1">Atenção: Material em falta</h3>
-                                <p class="text-sm text-slate-600">Resina epóxi especial (Resina Areia®) para obra <strong>Residência Vista Mar</strong> está com estoque crítico. Lead time do fornecedor: 15 dias.</p>
-                            </div>
-                        </div>
-                        <button class="px-4 py-2 bg-amber-100 text-amber-700 text-sm font-semibold rounded-lg hover:bg-amber-200 transition-colors">
-                            Acionar compra
-                        </button>
-                    </div>
+            <!-- Scrollable Content -->
+            <div class="flex-1 overflow-y-auto overflow-x-hidden p-4 md:p-8 custom-scrollbar">
+                <div class="max-w-7xl mx-auto space-y-6">
 
-                    <!-- KPI Cards -->
-                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                        <div class="glass-card rounded-2xl p-6 hover-lift border-t-4 border-sand-500">
-                            <div class="flex items-center justify-between mb-4">
-                                <div class="p-3 bg-sand-100 rounded-xl">
-                                    <i data-lucide=" construction" class="w-6 h-6 text-sand-600"></i>
+                    <!-- DASHBOARD TAB -->
+                    <div id="tab-dashboard" class="tab-content space-y-6 animate-slide-up">
+                        <!-- Alert Banner -->
+                        <div class="glass-card rounded-3xl p-5 border-l-4 border-amber-500 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                            <div class="flex items-center gap-4">
+                                <div class="w-12 h-12 rounded-2xl bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center flex-shrink-0">
+                                    <i data-lucide="alert-triangle" class="w-6 h-6 text-amber-600 dark:text-amber-400"></i>
                                 </div>
-                                <span class="text-emerald-600 text-sm font-bold flex items-center gap-1">
-                                    <i data-lucide="trending-up" class="w-4 h-4"></i>
-                                    +2
-                                </span>
-                            </div>
-                            <p class="text-3xl font-bold text-slate-900 mb-1 money-counter" data-target="5">0</p>
-                            <p class="text-sm text-slate-500 font-medium">Obras em Andamento</p>
-                            <div class="mt-4 w-full bg-slate-100 h-1.5 rounded-full overflow-hidden">
-                                <div class="bg-gradient-to-r from-sand-400 to-sand-600 h-full rounded-full progress-bar" style="width: 75%"></div>
-                            </div>
-                        </div>
-
-                        <div class="glass-card rounded-2xl p-6 hover-lift border-t-4 border-emerald-500">
-                            <div class="flex items-center justify-between mb-4">
-                                <div class="p-3 bg-emerald-100 rounded-xl">
-                                    <i data-lucide="brazilian-real" class="w-6 h-6 text-emerald-600"></i>
-                                </div>
-                                <span class="text-emerald-600 text-sm font-bold flex items-center gap-1">
-                                    <i data-lucide="arrow-up-right" class="w-4 h-4"></i>
-                                    23%
-                                </span>
-                            </div>
-                            <p class="text-3xl font-bold text-slate-900 mb-1 money-counter">R$ 3.2M</p>
-                            <p class="text-sm text-slate-500 font-medium">Receita 2024 (YTD)</p>
-                            <div class="mt-4 w-full bg-slate-100 h-1.5 rounded-full overflow-hidden">
-                                <div class="bg-gradient-to-r from-emerald-400 to-emerald-600 h-full rounded-full progress-bar" style="width: 68%"></div>
-                            </div>
-                        </div>
-
-                        <div class="glass-card rounded-2xl p-6 hover-lift border-t-4 border-blue-500">
-                            <div class="flex items-center justify-between mb-4">
-                                <div class="p-3 bg-blue-100 rounded-xl">
-                                    <i data-lucide="users" class="w-6 h-6 text-blue-600"></i>
-                                </div>
-                                <span class="text-blue-600 text-sm font-bold">12 novos</span>
-                            </div>
-                            <p class="text-3xl font-bold text-slate-900 mb-1 money-counter">28</p>
-                            <p class="text-sm text-slate-500 font-medium">Leads Qualificados</p>
-                            <div class="mt-4 w-full bg-slate-100 h-1.5 rounded-full overflow-hidden">
-                                <div class="bg-gradient-to-r from-blue-400 to-blue-600 h-full rounded-full progress-bar" style="width: 45%"></div>
-                            </div>
-                        </div>
-
-                        <div class="glass-card rounded-2xl p-6 hover-lift border-t-4 border-purple-500">
-                            <div class="flex items-center justify-between mb-4">
-                                <div class="p-3 bg-purple-100 rounded-xl">
-                                    <i data-lucide="target" class="w-6 h-6 text-purple-600"></i>
-                                </div>
-                                <span class="text-purple-600 text-sm font-bold">85%</span>
-                            </div>
-                            <p class="text-3xl font-bold text-slate-900 mb-1 money-counter">R$ 850K</p>
-                            <p class="text-sm text-slate-500 font-medium">Meta Q4 • Faltam R$ 150K</p>
-                            <div class="mt-4 w-full bg-slate-100 h-1.5 rounded-full overflow-hidden">
-                                <div class="bg-gradient-to-r from-purple-400 to-purple-600 h-full rounded-full progress-bar" style="width: 85%"></div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Main Grid -->
-                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                        
-                        <!-- Obras em Destaque (2 cols) -->
-                        <div class="lg:col-span-2 glass-card rounded-2xl p-6">
-                            <div class="flex items-center justify-between mb-6">
                                 <div>
-                                    <h3 class="text-lg font-bold text-slate-900">Obras em Andamento</h3>
-                                    <p class="text-sm text-slate-500">Acompanhamento de projetos de luxo</p>
+                                    <h3 class="font-semibold text-gray-900 dark:text-white">Material em falta</h3>
+                                    <p class="text-sm text-gray-600 dark:text-gray-400">Resina Areia® para <strong>Vista Mar</strong> — Lead time: 15 dias</p>
                                 </div>
-                                <button class="text-sm font-semibold text-sand-600 hover:text-sand-700 flex items-center gap-1 transition-colors">
-                                    Ver todas
-                                    <i data-lucide="arrow-right" class="w-4 h-4"></i>
+                            </div>
+                            <button class="px-5 py-2.5 bg-amber-100 dark:bg-amber-900/30 text-amber-800 dark:text-amber-300 text-sm font-semibold rounded-xl hover:bg-amber-200 dark:hover:bg-amber-900/50 transition-colors whitespace-nowrap">
+                                Fazer pedido
+                            </button>
+                        </div>
+
+                        <!-- KPI Grid -->
+                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                            <div class="glass-card rounded-3xl p-6 hover-lift stagger-1">
+                                <div class="flex items-center justify-between mb-4">
+                                    <div class="p-3 bg-sand-100 dark:bg-sand-900/30 rounded-2xl">
+                                        <i data-lucide="hard-hat" class="w-6 h-6 text-sand-600 dark:text-sand-400"></i>
+                                    </div>
+                                    <span class="text-emerald-600 text-sm font-semibold flex items-center gap-1">
+                                        <i data-lucide="trending-up" class="w-4 h-4"></i> +2
+                                    </span>
+                                </div>
+                                <p class="text-3xl font-semibold text-gray-900 dark:text-white mb-1">5</p>
+                                <p class="text-sm text-gray-500 dark:text-gray-400">Obras Ativas</p>
+                                <div class="mt-4 h-1.5 bg-gray-100 dark:bg-gray-800 rounded-full overflow-hidden">
+                                    <div class="h-full progress-fill bg-gradient-to-r from-sand-400 to-sand-600 rounded-full" style="width: 75%"></div>
+                                </div>
+                            </div>
+
+                            <div class="glass-card rounded-3xl p-6 hover-lift stagger-2">
+                                <div class="flex items-center justify-between mb-4">
+                                    <div class="p-3 bg-emerald-100 dark:bg-emerald-900/20 rounded-2xl">
+                                        <i data-lucide="banknote" class="w-6 h-6 text-emerald-600 dark:text-emerald-400"></i>
+                                    </div>
+                                    <span class="text-emerald-600 text-sm font-semibold flex items-center gap-1">
+                                        <i data-lucide="arrow-up-right" class="w-4 h-4"></i> 23%
+                                    </span>
+                                </div>
+                                <p class="text-3xl font-semibold text-gray-900 dark:text-white mb-1">R$ 3.2M</p>
+                                <p class="text-sm text-gray-500 dark:text-gray-400">Receita 2024</p>
+                                <div class="mt-4 h-1.5 bg-gray-100 dark:bg-gray-800 rounded-full overflow-hidden">
+                                    <div class="h-full progress-fill bg-gradient-to-r from-emerald-400 to-emerald-600 rounded-full" style="width: 68%"></div>
+                                </div>
+                            </div>
+
+                            <div class="glass-card rounded-3xl p-6 hover-lift stagger-3">
+                                <div class="flex items-center justify-between mb-4">
+                                    <div class="p-3 bg-ocean-100 dark:bg-ocean-900/20 rounded-2xl">
+                                        <i data-lucide="crown" class="w-6 h-6 text-ocean-600 dark:text-ocean-400"></i>
+                                    </div>
+                                    <span class="text-ocean-600 text-sm font-semibold">12 novos</span>
+                                </div>
+                                <p class="text-3xl font-semibold text-gray-900 dark:text-white mb-1">28</p>
+                                <p class="text-sm text-gray-500 dark:text-gray-400">Leads Qualificados</p>
+                                <div class="mt-4 h-1.5 bg-gray-100 dark:bg-gray-800 rounded-full overflow-hidden">
+                                    <div class="h-full progress-fill bg-gradient-to-r from-ocean-400 to-ocean-600 rounded-full" style="width: 45%"></div>
+                                </div>
+                            </div>
+
+                            <div class="glass-card rounded-3xl p-6 hover-lift stagger-4">
+                                <div class="flex items-center justify-between mb-4">
+                                    <div class="p-3 bg-purple-100 dark:bg-purple-900/20 rounded-2xl">
+                                        <i data-lucide="target" class="w-6 h-6 text-purple-600 dark:text-purple-400"></i>
+                                    </div>
+                                    <span class="text-purple-600 text-sm font-semibold">85%</span>
+                                </div>
+                                <p class="text-3xl font-semibold text-gray-900 dark:text-white mb-1">R$ 850K</p>
+                                <p class="text-sm text-gray-500 dark:text-gray-400">Meta Q4 (Faltam R$ 150K)</p>
+                                <div class="mt-4 h-1.5 bg-gray-100 dark:bg-gray-800 rounded-full overflow-hidden">
+                                    <div class="h-full progress-fill bg-gradient-to-r from-purple-400 to-purple-600 rounded-full" style="width: 85%"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Main Grid -->
+                        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                            <!-- Obras -->
+                            <div class="lg:col-span-2 glass-card rounded-3xl p-6">
+                                <div class="flex items-center justify-between mb-6">
+                                    <div>
+                                        <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Obras em Destaque</h3>
+                                        <p class="text-sm text-gray-500 dark:text-gray-400">Projetos de alto padrão em andamento</p>
+                                    </div>
+                                    <button class="text-sm font-medium text-sand-600 dark:text-sand-400 hover:text-sand-700 flex items-center gap-1 transition-colors">
+                                        Ver todas <i data-lucide="arrow-right" class="w-4 h-4"></i>
+                                    </button>
+                                </div>
+
+                                <div class="space-y-4">
+                                    <!-- Obra 1 -->
+                                    <div class="group p-5 rounded-2xl bg-white/50 dark:bg-gray-800/50 border border-transparent hover:border-sand-300 dark:hover:border-sand-700 transition-all cursor-pointer hover:shadow-lg">
+                                        <div class="flex items-start justify-between mb-4">
+                                            <div class="flex items-center gap-4">
+                                                <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-sand-200 to-sand-300 dark:from-sand-800 dark:to-sand-900 flex items-center justify-center">
+                                                    <i data-lucide="home" class="w-7 h-7 text-sand-700 dark:text-sand-300"></i>
+                                                </div>
+                                                <div>
+                                                    <h4 class="font-semibold text-gray-900 dark:text-white text-lg">Residência Vista Mar</h4>
+                                                    <p class="text-sm text-gray-500 dark:text-gray-400">Família Guimarães • Praia de Camburi</p>
+                                                </div>
+                                            </div>
+                                            <div class="text-right">
+                                                <div class="text-lg font-semibold text-gray-900 dark:text-white">R$ 420K</div>
+                                                <div class="text-xs text-gray-500">80m² • Praia Natural</div>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="flex items-center gap-3 mb-4">
+                                            <span class="px-3 py-1 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 text-xs font-bold rounded-full">Revestimento Areia®</span>
+                                            <span class="px-3 py-1 bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 text-xs font-bold rounded-full flex items-center gap-1">
+                                                <i data-lucide="alert-circle" class="w-3 h-3"></i> Material crítico
+                                            </span>
+                                        </div>
+
+                                        <div class="flex items-center gap-4">
+                                            <div class="flex -space-x-2">
+                                                <img class="w-8 h-8 rounded-full border-2 border-white dark:border-gray-800" src="https://ui-avatars.com/api/?name=Carlos&background=random">
+                                                <img class="w-8 h-8 rounded-full border-2 border-white dark:border-gray-800" src="https://ui-avatars.com/api/?name=Maria&background=random">
+                                                <div class="w-8 h-8 rounded-full border-2 border-white dark:border-gray-800 bg-gray-100 dark:bg-gray-700 flex items-center justify-center text-xs font-medium">+2</div>
+                                            </div>
+                                            <div class="flex-1">
+                                                <div class="flex justify-between text-sm mb-1.5">
+                                                    <span class="text-gray-600 dark:text-gray-400">Progresso</span>
+                                                    <span class="font-semibold text-sand-600 dark:text-sand-400">78%</span>
+                                                </div>
+                                                <div class="h-2 bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden">
+                                                    <div class="h-full bg-gradient-to-r from-sand-400 to-sand-600 rounded-full progress-fill" style="width: 78%"></div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Obra 2 -->
+                                    <div class="p-5 rounded-2xl bg-white/50 dark:bg-gray-800/50 border border-transparent hover:border-ocean-300 dark:hover:border-ocean-700 transition-all cursor-pointer hover:shadow-lg">
+                                        <div class="flex items-start justify-between mb-4">
+                                            <div class="flex items-center gap-4">
+                                                <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-ocean-200 to-ocean-300 dark:from-ocean-800 dark:to-ocean-900 flex items-center justify-center">
+                                                    <i data-lucide="building" class="w-7 h-7 text-ocean-700 dark:text-ocean-300"></i>
+                                                </div>
+                                                <div>
+                                                    <h4 class="font-semibold text-gray-900 dark:text-white text-lg">Pousada Paraíso Natural</h4>
+                                                    <p class="text-sm text-gray-500 dark:text-gray-400">Grupo Hoteluxe • Ilhabela</p>
+                                                </div>
+                                            </div>
+                                            <div class="text-right">
+                                                <div class="text-lg font-semibold text-gray-900 dark:text-white">R$ 890K</div>
+                                                <div class="text-xs text-gray-500">150m² • Resort</div>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="flex items-center gap-3 mb-4">
+                                            <span class="px-3 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 text-xs font-bold rounded-full">Concretagem</span>
+                                            <span class="px-3 py-1 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 text-xs font-bold rounded-full flex items-center gap-1">
+                                                <i data-lucide="check-circle" class="w-3 h-3"></i> No prazo
+                                            </span>
+                                        </div>
+
+                                        <div class="flex items-center gap-4">
+                                            <div class="flex -space-x-2">
+                                                <img class="w-8 h-8 rounded-full border-2 border-white dark:border-gray-800" src="https://ui-avatars.com/api/?name=Pedro&background=random">
+                                                <div class="w-8 h-8 rounded-full border-2 border-white dark:border-gray-800 bg-gray-100 dark:bg-gray-700 flex items-center justify-center text-xs font-medium">+5</div>
+                                            </div>
+                                            <div class="flex-1">
+                                                <div class="flex justify-between text-sm mb-1.5">
+                                                    <span class="text-gray-600 dark:text-gray-400">Progresso</span>
+                                                    <span class="font-semibold text-ocean-600 dark:text-ocean-400">45%</span>
+                                                </div>
+                                                <div class="h-2 bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden">
+                                                    <div class="h-full bg-gradient-to-r from-ocean-400 to-ocean-600 rounded-full progress-fill" style="width: 45%"></div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Pipeline & Hot Lead -->
+                            <div class="space-y-6">
+                                <div class="glass-card rounded-3xl p-6">
+                                    <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-6">Pipeline Q4</h3>
+                                    
+                                    <div class="space-y-4">
+                                        <div class="flex items-center justify-between p-4 rounded-2xl bg-gradient-to-r from-sand-50 to-white dark:from-sand-900/20 dark:to-gray-800/50 border border-sand-100 dark:border-sand-800 hover:shadow-md transition-all cursor-pointer">
+                                            <div class="flex items-center gap-3">
+                                                <div class="w-3 h-3 rounded-full bg-emerald-500 ring-4 ring-emerald-100 dark:ring-emerald-900/30"></div>
+                                                <div>
+                                                    <p class="font-semibold text-gray-900 dark:text-white text-sm">Novos Leads</p>
+                                                    <p class="text-xs text-gray-500">Últimos 7 dias</p>
+                                                </div>
+                                            </div>
+                                            <span class="text-2xl font-semibold text-emerald-600">8</span>
+                                        </div>
+
+                                        <div class="flex items-center justify-between p-4 rounded-2xl bg-gradient-to-r from-amber-50 to-white dark:from-amber-900/20 dark:to-gray-800/50 border border-amber-100 dark:border-amber-800 hover:shadow-md transition-all cursor-pointer">
+                                            <div class="flex items-center gap-3">
+                                                <div class="w-3 h-3 rounded-full bg-amber-500 ring-4 ring-amber-100 dark:ring-amber-900/30 animate-pulse"></div>
+                                                <div>
+                                                    <p class="font-semibold text-gray-900 dark:text-white text-sm">Propostas</p>
+                                                    <p class="text-xs text-gray-500">Aguardando aprovação</p>
+                                                </div>
+                                            </div>
+                                            <div class="text-right">
+                                                <span class="text-2xl font-semibold text-amber-600">4</span>
+                                                <p class="text-xs font-medium text-amber-700">R$ 1.2M</p>
+                                            </div>
+                                        </div>
+
+                                        <div class="flex items-center justify-between p-4 rounded-2xl bg-gradient-to-r from-blue-50 to-white dark:from-blue-900/20 dark:to-gray-800/50 border border-blue-100 dark:border-blue-800 hover:shadow-md transition-all cursor-pointer">
+                                            <div class="flex items-center gap-3">
+                                                <div class="w-3 h-3 rounded-full bg-blue-500 ring-4 ring-blue-100 dark:ring-blue-900/30"></div>
+                                                <div>
+                                                    <p class="font-semibold text-gray-900 dark:text-white text-sm">Fechamento</p>
+                                                    <p class="text-xs text-gray-500">Contratos sendo assinados</p>
+                                                </div>
+                                            </div>
+                                            <span class="text-2xl font-semibold text-blue-600">2</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Hot Lead Card -->
+                                <div class="relative overflow-hidden rounded-3xl bg-gradient-to-br from-sand-500 via-sand-600 to-sand-700 text-white shadow-xl shadow-sand-500/30 dark:shadow-sand-900/50">
+                                    <div class="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-3xl -mr-16 -mt-16"></div>
+                                    <div class="relative p-6">
+                                        <div class="flex items-start justify-between mb-4">
+                                            <span class="px-3 py-1 bg-white/20 backdrop-blur-sm rounded-full text-xs font-bold flex items-center gap-1.5 border border-white/20">
+                                                <i data-lucide="flame" class="w-3.5 h-3.5"></i>
+                                                HOT LEAD
+                                            </span>
+                                            <button class="p-2 bg-white/10 rounded-full hover:bg-white/20 transition-colors">
+                                                <i data-lucide="more-horizontal" class="w-5 h-5"></i>
+                                            </button>
+                                        </div>
+                                        
+                                        <h4 class="text-xl font-semibold mb-1">Carlos Eduardo M.</h4>
+                                        <p class="text-sand-100 text-sm mb-6">Res. Aldeia da Serra • 60m² + SPA</p>
+                                        
+                                        <div class="space-y-3 mb-6">
+                                            <div class="flex justify-between text-sm">
+                                                <span class="text-sand-200">Orçamento estimado</span>
+                                                <span class="font-bold text-xl">R$ 520K</span>
+                                            </div>
+                                            <div class="flex justify-between text-sm">
+                                                <span class="text-sand-200">Status</span>
+                                                <span class="font-semibold text-emerald-300">Aguardando visita</span>
+                                            </div>
+                                        </div>
+
+                                        <div class="grid grid-cols-2 gap-3">
+                                            <button class="py-3 bg-white text-sand-700 rounded-xl font-semibold text-sm hover:bg-sand-50 transition-colors btn-press flex items-center justify-center gap-2">
+                                                <i data-lucide="message-circle" class="w-4 h-4"></i>
+                                                WhatsApp
+                                            </button>
+                                            <button class="py-3 bg-white/10 text-white border border-white/30 rounded-xl font-semibold text-sm hover:bg-white/20 transition-colors btn-press">
+                                                Agendar
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Recent Activity -->
+                        <div class="glass-card rounded-3xl p-6">
+                            <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-6">Atividade Recente</h3>
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                <div class="flex items-start gap-4 p-4 rounded-2xl hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors cursor-pointer">
+                                    <div class="w-10 h-10 rounded-full bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center flex-shrink-0">
+                                        <i data-lucide="check-circle" class="w-5 h-5 text-emerald-600 dark:text-emerald-400"></i>
+                                    </div>
+                                    <div class="min-w-0">
+                                        <p class="font-semibold text-gray-900 dark:text-white text-sm truncate">Pagamento confirmado</p>
+                                        <p class="text-sm text-gray-600 dark:text-gray-400 mt-0.5">2ª parcela Vista Mar</p>
+                                        <p class="text-xs text-gray-400 mt-2">há 2 horas • R$ 126.000</p>
+                                    </div>
+                                </div>
+
+                                <div class="flex items-start gap-4 p-4 rounded-2xl hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors cursor-pointer">
+                                    <div class="w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center flex-shrink-0">
+                                        <i data-lucide="instagram" class="w-5 h-5 text-blue-600 dark:text-blue-400"></i>
+                                    </div>
+                                    <div class="min-w-0">
+                                        <p class="font-semibold text-gray-900 dark:text-white text-sm truncate">Novo lead qualificado</p>
+                                        <p class="text-sm text-gray-600 dark:text-gray-400 mt-0.5">Hotel Boutique Ilhabela</p>
+                                        <p class="text-xs text-gray-400 mt-2">há 4 horas • 120m²</p>
+                                    </div>
+                                </div>
+
+                                <div class="flex items-start gap-4 p-4 rounded-2xl hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors cursor-pointer">
+                                    <div class="w-10 h-10 rounded-full bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center flex-shrink-0">
+                                        <i data-lucide="alert-triangle" class="w-5 h-5 text-amber-600 dark:text-amber-400"></i>
+                                    </div>
+                                    <div class="min-w-0">
+                                        <p class="font-semibold text-gray-900 dark:text-white text-sm truncate">Atraso identificado</p>
+                                        <p class="text-sm text-gray-600 dark:text-gray-400 mt-0.5">Entrega de concreto</p>
+                                        <p class="text-xs text-gray-400 mt-2">há 5 horas • Chuva forte</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- OBRAS TAB -->
+                    <div id="tab-obras" class="tab-content hidden space-y-6 animate-slide-up">
+                        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                            <div>
+                                <h2 class="text-2xl font-semibold text-gray-900 dark:text-white">Gestão de Obras</h2>
+                                <p class="text-gray-500 dark:text-gray-400 mt-1">Acompanhamento detalhado de projetos</p>
+                            </div>
+                            <div class="flex items-center gap-3">
+                                <select class="px-4 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-sand-500">
+                                    <option>Todas as obras</option>
+                                    <option>Em andamento</option>
+                                    <option>Concluídas</option>
+                                </select>
+                                <button class="px-5 py-2.5 bg-sand-500 hover:bg-sand-600 text-white font-medium rounded-xl shadow-lg shadow-sand-500/25 transition-all btn-press flex items-center gap-2">
+                                    <i data-lucide="plus" class="w-4 h-4"></i>
+                                    <span class="hidden sm:inline">Nova Obra</span>
                                 </button>
                             </div>
-
-                            <div class="space-y-4">
-                                <!-- Obra 1 -->
-                                <div class="group p-5 rounded-2xl bg-slate-50 border border-slate-100 hover:border-sand-300 hover:shadow-lg transition-all cursor-pointer">
-                                    <div class="flex items-start justify-between mb-4">
-                                        <div class="flex items-start gap-4">
-                                            <div class="w-14 h-14 rounded-xl bg-gradient-to-br from-sand-200 to-sand-300 flex items-center justify-center shadow-inner">
-                                                <i data-lucide="home" class="w-7 h-7 text-sand-700"></i>
-                                            </div>
-                                            <div>
-                                                <h4 class="font-bold text-slate-900 mb-1">Residência Vista Mar</h4>
-                                                <p class="text-sm text-slate-500">Cliente: Família Guimarães • Praia de Camburi, SP</p>
-                                                <div class="flex items-center gap-3 mt-2">
-                                                    <span class="px-3 py-1 bg-emerald-100 text-emerald-700 text-xs font-bold rounded-full">Fase: Revestimento</span>
-                                                    <span class="text-xs text-slate-400 flex items-center gap-1">
-                                                        <i data-lucide="calendar" class="w-3 h-3"></i>
-                                                        Entrega: 20 dias
-                                                    </span>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div class="text-right">
-                                            <div class="text-lg font-bold text-slate-900">R$ 420K</div>
-                                            <div class="text-xs text-slate-500">Valor do projeto</div>
-                                        </div>
-                                    </div>
-                                    
-                                    <div class="flex items-center gap-4 mb-3">
-                                        <div class="flex -space-x-3">
-                                            <img class="w-8 h-8 rounded-full border-2 border-white shadow-sm" src="https://ui-avatars.com/api/?name=Carlos+Mestre&background=random" title="Mestre de Obras">
-                                            <img class="w-8 h-8 rounded-full border-2 border-white shadow-sm" src="https://ui-avatars.com/api/?name=João+Eng&background=random" title="Engenheiro">
-                                            <img class="w-8 h-8 rounded-full border-2 border-white shadow-sm" src="https://ui-avatars.com/api/?name=Maria+Design&background=random" title="Paisagista">
-                                            <div class="w-8 h-8 rounded-full border-2 border-white bg-sand-100 flex items-center justify-center text-xs font-bold text-sand-700">+2</div>
-                                        </div>
-                                        <div class="flex-1">
-                                            <div class="flex justify-between text-sm mb-1">
-                                                <span class="text-slate-600 font-medium">Progresso da obra</span>
-                                                <span class="text-sand-700 font-bold">78%</span>
-                                            </div>
-                                            <div class="w-full h-2.5 bg-slate-200 rounded-full overflow-hidden">
-                                                <div class="h-full bg-gradient-to-r from-sand-400 via-sand-500 to-sand-600 rounded-full progress-bar shadow-sm" style="width: 78%"></div>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <div class="flex items-center gap-6 text-sm pt-3 border-t border-slate-200">
-                                        <div class="flex items-center gap-2 text-amber-600 font-medium">
-                                            <i data-lucide="alert-circle" class="w-4 h-4"></i>
-                                            <span>Material crítico</span>
-                                        </div>
-                                        <div class="flex items-center gap-2 text-emerald-600 font-medium">
-                                            <i data-lucide="check-circle" class="w-4 h-4"></i>
-                                            <span>Alvará OK</span>
-                                        </div>
-                                        <div class="flex items-center gap-2 text-slate-500">
-                                            <i data-lucide="maximize" class="w-4 h-4"></i>
-                                            <span>80m² • Praia Natural</span>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <!-- Obra 2 -->
-                                <div class="group p-5 rounded-2xl bg-slate-50 border border-slate-100 hover:border-ocean-300 hover:shadow-lg transition-all cursor-pointer">
-                                    <div class="flex items-start justify-between mb-4">
-                                        <div class="flex items-start gap-4">
-                                            <div class="w-14 h-14 rounded-xl bg-gradient-to-br from-ocean-200 to-ocean-300 flex items-center justify-center shadow-inner">
-                                                <i data-lucide="building" class="w-7 h-7 text-ocean-700"></i>
-                                            </div>
-                                            <div>
-                                                <h4 class="font-bold text-slate-900 mb-1">Pousada Paraíso Natural</h4>
-                                                <p class="text-sm text-slate-500">Cliente: Grupo Hoteluxe • Ilhabela, SP</p>
-                                                <div class="flex items-center gap-3 mt-2">
-                                                    <span class="px-3 py-1 bg-blue-100 text-blue-700 text-xs font-bold rounded-full">Fase: Concretagem</span>
-                                                    <span class="text-xs text-slate-400 flex items-center gap-1">
-                                                        <i data-lucide="calendar" class="w-3 h-3"></i>
-                                                        Entrega: 60 dias
-                                                    </span>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div class="text-right">
-                                            <div class="text-lg font-bold text-slate-900">R$ 890K</div>
-                                            <div class="text-xs text-slate-500">Valor do projeto</div>
-                                        </div>
-                                    </div>
-                                    
-                                    <div class="flex items-center gap-4 mb-3">
-                                        <div class="flex -space-x-3">
-                                            <img class="w-8 h-8 rounded-full border-2 border-white shadow-sm" src="https://ui-avatars.com/api/?name=Pedro+Const&background=random">
-                                            <img class="w-8 h-8 rounded-full border-2 border-white shadow-sm" src="https://ui-avatars.com/api/?name=Ana+Arq&background=random">
-                                            <div class="w-8 h-8 rounded-full border-2 border-white bg-ocean-100 flex items-center justify-center text-xs font-bold text-ocean-700">+5</div>
-                                        </div>
-                                        <div class="flex-1">
-                                            <div class="flex justify-between text-sm mb-1">
-                                                <span class="text-slate-600 font-medium">Progresso da obra</span>
-                                                <span class="text-ocean-700 font-bold">45%</span>
-                                            </div>
-                                            <div class="w-full h-2.5 bg-slate-200 rounded-full overflow-hidden">
-                                                <div class="h-full bg-gradient-to-r from-ocean-400 to-ocean-600 rounded-full progress-bar shadow-sm" style="width: 45%"></div>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <div class="flex items-center gap-6 text-sm pt-3 border-t border-slate-200">
-                                        <div class="flex items-center gap-2 text-emerald-600 font-medium">
-                                            <i data-lucide="check-circle" class="w-4 h-4"></i>
-                                            <span>Concreto IMPEMBA armado</span>
-                                        </div>
-                                        <div class="flex items-center gap-2 text-emerald-600 font-medium">
-                                            <i data-lucide="check-circle" class="w-4 h-4"></i>
-                                            <span>Equipe completa</span>
-                                        </div>
-                                        <div class="flex items-center gap-2 text-slate-500">
-                                            <i data-lucide="maximize" class="w-4 h-4"></i>
-                                            <span>150m² • Resort</span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
                         </div>
 
-                        <!-- Right Column: Leads & Pipeline -->
-                        <div class="space-y-6">
-                            <!-- Pipeline -->
-                            <div class="glass-card rounded-2xl p-6">
-                                <h3 class="text-lg font-bold text-slate-900 mb-1">Pipeline de Vendas</h3>
-                                <p class="text-sm text-slate-500 mb-6">Leads de alto padrão • Q4 2024</p>
-                                
-                                <div class="space-y-4">
-                                    <div class="flex items-center justify-between p-4 rounded-xl bg-gradient-to-r from-sand-50 to-white border border-sand-100 hover:shadow-md transition-all cursor-pointer group">
-                                        <div class="flex items-center gap-3">
-                                            <div class="w-3 h-3 rounded-full bg-emerald-500 shadow-lg shadow-emerald-500/50"></div>
-                                            <div>
-                                                <p class="text-sm font-bold text-slate-900">Novos Leads</p>
-                                                <p class="text-xs text-slate-500">Esta semana</p>
-                                            </div>
-                                        </div>
-                                        <div class="flex items-center gap-3">
-                                            <span class="text-2xl font-bold text-emerald-600">8</span>
-                                            <i data-lucide="arrow-right" class="w-4 h-4 text-slate-300 group-hover:text-sand-500 transition-colors"></i>
-                                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                            <!-- Obra Cards (repeated from dashboard + more) -->
+                            <div class="glass-card rounded-3xl overflow-hidden hover-lift group">
+                                <div class="h-40 bg-gradient-to-br from-sand-200 to-sand-300 dark:from-sand-800 dark:to-sand-900 relative overflow-hidden">
+                                    <div class="absolute inset-0 bg-black/5 group-hover:bg-black/0 transition-colors"></div>
+                                    <div class="absolute top-4 right-4 px-3 py-1.5 bg-white/90 dark:bg-gray-900/90 backdrop-blur text-sand-700 dark:text-sand-300 text-xs font-bold rounded-full shadow-lg">
+                                        78% Concluído
                                     </div>
-
-                                    <div class="flex items-center justify-between p-4 rounded-xl bg-gradient-to-r from-amber-50 to-white border border-amber-100 hover:shadow-md transition-all cursor-pointer group">
-                                        <div class="flex items-center gap-3">
-                                            <div class="w-3 h-3 rounded-full bg-amber-500 shadow-lg shadow-amber-500/50 animate-pulse"></div>
-                                            <div>
-                                                <p class="text-sm font-bold text-slate-900">Em Negociação</p>
-                                                <p class="text-xs text-slate-500">Propostas enviadas</p>
-                                            </div>
-                                        </div>
-                                        <div class="flex items-center gap-3">
-                                            <span class="text-2xl font-bold text-amber-600">4</span>
-                                            <span class="text-xs font-medium text-amber-700 bg-amber-100 px-2 py-1 rounded-full">R$ 1.2M</span>
-                                        </div>
-                                    </div>
-
-                                    <div class="flex items-center justify-between p-4 rounded-xl bg-gradient-to-r from-blue-50 to-white border border-blue-100 hover:shadow-md transition-all cursor-pointer group">
-                                        <div class="flex items-center gap-3">
-                                            <div class="w-3 h-3 rounded-full bg-blue-500 shadow-lg shadow-blue-500/50"></div>
-                                            <div>
-                                                <p class="text-sm font-bold text-slate-900">Fechamento</p>
-                                                <p class="text-xs text-slate-500">Contratos pendentes</p>
-                                            </div>
-                                        </div>
-                                        <div class="flex items-center gap-3">
-                                            <span class="text-2xl font-bold text-blue-600">2</span>
-                                            <i data-lucide="arrow-right" class="w-4 h-4 text-slate-300 group-hover:text-blue-500 transition-colors"></i>
-                                        </div>
-                                    </div>
-
-                                    <div class="flex items-center justify-between p-4 rounded-xl bg-gradient-to-r from-purple-50 to-white border border-purple-100 hover:shadow-md transition-all cursor-pointer group">
-                                        <div class="flex items-center gap-3">
-                                            <div class="w-3 h-3 rounded-full bg-purple-500 shadow-lg shadow-purple-500/50"></div>
-                                            <div>
-                                                <p class="text-sm font-bold text-slate-900">Convertidos</p>
-                                                <p class="text-xs text-slate-500">Este mês</p>
-                                            </div>
-                                        </div>
-                                        <div class="flex items-center gap-3">
-                                            <span class="text-2xl font-bold text-purple-600">3</span>
-                                            <span class="text-xs font-medium text-emerald-700 bg-emerald-100 px-2 py-1 rounded-full">+R$ 980K</span>
-                                        </div>
+                                    <div class="absolute bottom-4 left-4 flex -space-x-2">
+                                        <img class="w-8 h-8 rounded-full border-2 border-white dark:border-gray-800" src="https://ui-avatars.com/api/?name=João&background=random">
+                                        <img class="w-8 h-8 rounded-full border-2 border-white dark:border-gray-800" src="https://ui-avatars.com/api/?name=Maria&background=random">
+                                        <div class="w-8 h-8 rounded-full border-2 border-white dark:border-gray-800 bg-gray-100 dark:bg-gray-700 flex items-center justify-center text-xs font-medium">+2</div>
                                     </div>
                                 </div>
-
-                                <div class="mt-6 pt-6 border-t border-slate-200">
-                                    <div class="flex items-center justify-between mb-2">
-                                        <span class="text-sm font-medium text-slate-600">Potencial em negociação</span>
-                                        <span class="text-lg font-bold text-sand-700">R$ 2.1M</span>
+                                <div class="p-6">
+                                    <div class="flex items-start justify-between mb-3">
+                                        <div>
+                                            <h3 class="font-semibold text-lg text-gray-900 dark:text-white">Residência Vista Mar</h3>
+                                            <p class="text-sm text-gray-500 dark:text-gray-400">Praia de Camburi</p>
+                                        </div>
+                                        <span class="text-emerald-600 text-sm font-semibold">R$ 420K</span>
                                     </div>
-                                    <div class="w-full h-2 bg-slate-100 rounded-full overflow-hidden">
-                                        <div class="h-full bg-gradient-to-r from-sand-400 to-sand-600 rounded-full" style="width: 65%"></div>
+                                    
+                                    <div class="space-y-3 mb-4">
+                                        <div class="flex justify-between text-sm">
+                                            <span class="text-gray-500">Área</span>
+                                            <span class="font-medium text-gray-900 dark:text-white">80m²</span>
+                                        </div>
+                                        <div class="flex justify-between text-sm">
+                                            <span class="text-gray-500">Fase atual</span>
+                                            <span class="font-medium text-emerald-600">Revestimento</span>
+                                        </div>
+                                        <div class="flex justify-between text-sm">
+                                            <span class="text-gray-500">Entrega</span>
+                                            <span class="font-medium text-amber-600">20 dias</span>
+                                        </div>
+                                    </div>
+
+                                    <div class="h-2 bg-gray-100 dark:bg-gray-800 rounded-full overflow-hidden mb-4">
+                                        <div class="h-full progress-fill bg-gradient-to-r from-sand-400 to-sand-600 rounded-full" style="width: 78%"></div>
+                                    </div>
+
+                                    <div class="flex gap-2">
+                                        <button class="flex-1 py-2.5 text-sm font-medium text-sand-700 dark:text-sand-300 bg-sand-50 dark:bg-sand-900/30 rounded-xl hover:bg-sand-100 dark:hover:bg-sand-900/50 transition-colors">Detalhes</button>
+                                        <button class="flex-1 py-2.5 text-sm font-medium text-white bg-sand-500 rounded-xl hover:bg-sand-600 transition-colors">Atualizar</button>
                                     </div>
                                 </div>
                             </div>
 
-                            <!-- Hot Lead Card -->
-                            <div class="glass-card rounded-2xl p-6 bg-gradient-to-br from-sand-500 to-sand-700 text-white shadow-xl shadow-sand-500/30">
-                                <div class="flex items-start justify-between mb-4">
-                                    <div class="p-2 bg-white/20 rounded-lg backdrop-blur-sm">
-                                        <i data-lucide="flame" class="w-5 h-5 text-white animate-pulse"></i>
-                                    </div>
-                                    <span class="px-3 py-1 bg-white/20 backdrop-blur-sm text-xs font-bold rounded-full">HOT LEAD</span>
-                                </div>
-                                <h4 class="font-bold text-lg mb-1">Carlos Eduardo Machado</h4>
-                                <p class="text-sand-100 text-sm mb-4">Residencial Aldeia da Serra • Santana de Parnaíba</p>
-                                
-                                <div class="space-y-3 mb-4">
-                                    <div class="flex justify-between text-sm">
-                                        <span class="text-sand-200">Interesse:</span>
-                                        <span class="font-semibold">Piscina 60m² + SPA</span>
-                                    </div>
-                                    <div class="flex justify-between text-sm">
-                                        <span class="text-sand-200">Orçamento estimado:</span>
-                                        <span class="font-bold text-xl">R$ 520K</span>
-                                    </div>
-                                    <div class="flex justify-between text-sm">
-                                        <span class="text-sand-200">Status:</span>
-                                        <span class="font-semibold text-emerald-300">Aguardando visita</span>
+                            <div class="glass-card rounded-3xl overflow-hidden hover-lift group">
+                                <div class="h-40 bg-gradient-to-br from-ocean-200 to-ocean-300 dark:from-ocean-800 dark:to-ocean-900 relative overflow-hidden">
+                                    <div class="absolute top-4 right-4 px-3 py-1.5 bg-white/90 dark:bg-gray-900/90 backdrop-blur text-ocean-700 dark:text-ocean-300 text-xs font-bold rounded-full shadow-lg">
+                                        45% Concluído
                                     </div>
                                 </div>
+                                <div class="p-6">
+                                    <div class="flex items-start justify-between mb-3">
+                                        <div>
+                                            <h3 class="font-semibold text-lg text-gray-900 dark:text-white">Pousada Paraíso</h3>
+                                            <p class="text-sm text-gray-500 dark:text-gray-400">Ilhabela</p>
+                                        </div>
+                                        <span class="text-ocean-600 text-sm font-semibold">R$ 890K</span>
+                                    </div>
+                                    
+                                    <div class="space-y-3 mb-4">
+                                        <div class="flex justify-between text-sm">
+                                            <span class="text-gray-500">Área</span>
+                                            <span class="font-medium text-gray-900 dark:text-white">150m²</span>
+                                        </div>
+                                        <div class="flex justify-between text-sm">
+                                            <span class="text-gray-500">Fase</span>
+                                            <span class="font-medium text-blue-600">Concretagem</span>
+                                        </div>
+                                        <div class="flex justify-between text-sm">
+                                            <span class="text-gray-500">Entrega</span>
+                                            <span class="font-medium text-gray-600 dark:text-gray-400">60 dias</span>
+                                        </div>
+                                    </div>
 
-                                <div class="flex gap-2">
-                                    <button class="flex-1 py-2.5 bg-white text-sand-700 rounded-xl font-semibold text-sm hover:bg-sand-50 transition-colors flex items-center justify-center gap-2 shadow-lg">
-                                        <i data-lucide="whatsapp" class="w-4 h-4"></i>
-                                        <span>WhatsApp</span>
-                                    </button>
-                                    <button class="flex-1 py-2.5 bg-white/10 text-white border border-white/30 rounded-xl font-semibold text-sm hover:bg-white/20 transition-colors flex items-center justify-center gap-2">
-                                        <i data-lucide="calendar" class="w-4 h-4"></i>
-                                        <span>Agendar</span>
-                                    </button>
+                                    <div class="h-2 bg-gray-100 dark:bg-gray-800 rounded-full overflow-hidden mb-4">
+                                        <div class="h-full progress-fill bg-gradient-to-r from-ocean-400 to-ocean-600 rounded-full" style="width: 45%"></div>
+                                    </div>
+
+                                    <div class="flex gap-2">
+                                        <button class="flex-1 py-2.5 text-sm font-medium text-ocean-700 dark:text-ocean-300 bg-ocean-50 dark:bg-ocean-900/20 rounded-xl hover:bg-ocean-100 transition-colors">Detalhes</button>
+                                        <button class="flex-1 py-2.5 text-sm font-medium text-white bg-ocean-500 rounded-xl hover:bg-ocean-600 transition-colors">Atualizar</button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="glass-card rounded-3xl overflow-hidden hover-lift group opacity-75">
+                                <div class="h-40 bg-gradient-to-br from-gray-200 to-gray-300 dark:from-gray-800 dark:to-gray-900 relative overflow-hidden">
+                                    <div class="absolute inset-0 flex items-center justify-center">
+                                        <span class="px-4 py-2 bg-amber-500 text-white text-sm font-bold rounded-full shadow-lg">Aguardando material</span>
+                                    </div>
+                                </div>
+                                <div class="p-6">
+                                    <div class="flex items-start justify-between mb-3">
+                                        <div>
+                                            <h3 class="font-semibold text-lg text-gray-900 dark:text-white">Chácara do Lago</h3>
+                                            <p class="text-sm text-gray-500 dark:text-gray-400">São Roque</p>
+                                        </div>
+                                        <span class="text-gray-600 text-sm font-semibold">R$ 285K</span>
+                                    </div>
+                                    
+                                    <div class="space-y-3 mb-4">
+                                        <div class="flex justify-between text-sm">
+                                            <span class="text-gray-500">Área</span>
+                                            <span class="font-medium text-gray-900 dark:text-white">45m²</span>
+                                        </div>
+                                        <div class="flex justify-between text-sm">
+                                            <span class="text-gray-500">Fase</span>
+                                            <span class="font-medium text-amber-600">Fundação</span>
+                                        </div>
+                                        <div class="flex justify-between text-sm">
+                                            <span class="text-gray-500">Entrega</span>
+                                            <span class="font-medium text-gray-600 dark:text-gray-400">90 dias</span>
+                                        </div>
+                                    </div>
+
+                                    <div class="h-2 bg-gray-100 dark:bg-gray-800 rounded-full overflow-hidden mb-4">
+                                        <div class="h-full progress-fill bg-amber-500 rounded-full" style="width: 15%"></div>
+                                    </div>
+
+                                    <button class="w-full py-2.5 text-sm font-medium text-gray-600 dark:text-gray-400 bg-gray-100 dark:bg-gray-800 rounded-xl">Ver detalhes</button>
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Recent Activity -->
-                    <div class="glass-card rounded-2xl p-6">
-                        <h3 class="text-lg font-bold text-slate-900 mb-6">Atividade Recente</h3>
+                    <!-- LEADS TAB -->
+                    <div id="tab-leads" class="tab-content hidden space-y-6 animate-slide-up">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <h2 class="text-2xl font-semibold text-gray-900 dark:text-white">Leads VIP</h2>
+                                <p class="text-gray-500 dark:text-gray-400 mt-1">Gestão de relacionamento com clientes de alto padrão</p>
+                            </div>
+                            <button class="px-5 py-2.5 bg-sand-500 text-white rounded-xl font-medium shadow-lg shadow-sand-500/25 hover:bg-sand-600 transition-all btn-press flex items-center gap-2">
+                                <i data-lucide="user-plus" class="w-4 h-4"></i>
+                                Adicionar Lead
+                            </button>
+                        </div>
+
+                        <!-- CRM Pipeline Board -->
+                        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                            <div class="glass-card rounded-3xl p-4">
+                                <div class="flex items-center justify-between mb-4">
+                                    <h3 class="font-semibold text-gray-900 dark:text-white flex items-center gap-2">
+                                        <div class="w-2 h-2 rounded-full bg-gray-400"></div>
+                                        Novo Lead
+                                    </h3>
+                                    <span class="text-sm font-bold text-gray-600 bg-gray-100 dark:bg-gray-800 px-2.5 py-1 rounded-full">8</span>
+                                </div>
+                                <div class="space-y-3">
+                                    <div class="p-4 bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 hover:shadow-md transition-all cursor-pointer">
+                                        <div class="flex items-start justify-between mb-2">
+                                            <h4 class="font-semibold text-sm text-gray-900 dark:text-white">Roberto Campos</h4>
+                                            <span class="text-xs text-gray-500">há 2h</span>
+                                        </div>
+                                        <p class="text-xs text-gray-500 mb-3">Residencial Morumbi • 40m²</p>
+                                        <div class="flex items-center justify-between">
+                                            <span class="text-xs font-medium text-sand-600">R$ 180K</span>
+                                            <button class="p-1.5 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors">
+                                                <i data-lucide="more-horizontal" class="w-4 h-4 text-gray-400"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div class="p-4 bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 hover:shadow-md transition-all cursor-pointer">
+                                        <h4 class="font-semibold text-sm text-gray-900 dark:text-white mb-1">Marina Gomes</h4>
+                                        <p class="text-xs text-gray-500 mb-2">Cotia • Pousada 200m²</p>
+                                        <span class="text-xs font-medium text-ocean-600">R$ 1.2M</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="glass-card rounded-3xl p-4">
+                                <div class="flex items-center justify-between mb-4">
+                                    <h3 class="font-semibold text-gray-900 dark:text-white flex items-center gap-2">
+                                        <div class="w-2 h-2 rounded-full bg-amber-500"></div>
+                                        Qualificado
+                                    </h3>
+                                    <span class="text-sm font-bold text-amber-700 bg-amber-100 dark:bg-amber-900/30 px-2.5 py-1 rounded-full">5</span>
+                                </div>
+                                <div class="space-y-3">
+                                    <div class="p-4 bg-white dark:bg-gray-800 rounded-2xl shadow-sm border-2 border-amber-200 dark:border-amber-800 relative overflow-hidden">
+                                        <div class="absolute top-0 right-0 w-16 h-16 bg-amber-500/10 rounded-full blur-2xl -mr-8 -mt-8"></div>
+                                        <div class="flex items-start justify-between mb-2 relative">
+                                            <h4 class="font-semibold text-sm text-gray-900 dark:text-white">Carlos Eduardo M.</h4>
+                                            <i data-lucide="flame" class="w-4 h-4 text-amber-500"></i>
+                                        </div>
+                                        <p class="text-xs text-gray-500 mb-2">Aldeia da Serra • 60m²+SPA</p>
+                                        <div class="flex items-center justify-between relative">
+                                            <span class="text-sm font-bold text-amber-600">R$ 520K</span>
+                                            <button class="px-3 py-1.5 bg-amber-500 text-white text-xs font-medium rounded-lg hover:bg-amber-600 transition-colors">Ligar</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="glass-card rounded-3xl p-4">
+                                <div class="flex items-center justify-between mb-4">
+                                    <h3 class="font-semibold text-gray-900 dark:text-white flex items-center gap-2">
+                                        <div class="w-2 h-2 rounded-full bg-blue-500"></div>
+                                        Proposta
+                                    </h3>
+                                    <span class="text-sm font-bold text-blue-700 bg-blue-100 dark:bg-blue-900/30 px-2.5 py-1 rounded-full">4</span>
+                                </div>
+                                <div class="space-y-3">
+                                    <div class="p-4 bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700">
+                                        <h4 class="font-semibold text-sm text-gray-900 dark:text-white mb-1">Hotel Fasano</h4>
+                                        <p class="text-xs text-gray-500 mb-2">Porto Feliz • 300m²</p>
+                                        <div class="w-full h-1.5 bg-gray-100 rounded-full mb-2">
+                                            <div class="h-full bg-blue-500 rounded-full" style="width: 60%"></div>
+                                        </div>
+                                        <div class="flex justify-between text-xs">
+                                            <span class="text-gray-500">Proposta enviada</span>
+                                            <span class="font-medium text-blue-600">R$ 2.1M</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="glass-card rounded-3xl p-4">
+                                <div class="flex items-center justify-between mb-4">
+                                    <h3 class="font-semibold text-gray-900 dark:text-white flex items-center gap-2">
+                                        <div class="w-2 h-2 rounded-full bg-emerald-500"></div>
+                                        Fechado
+                                    </h3>
+                                    <span class="text-sm font-bold text-emerald-700 bg-emerald-100 dark:bg-emerald-900/30 px-2.5 py-1 rounded-full">3</span>
+                                </div>
+                                <div class="space-y-3">
+                                    <div class="p-4 bg-emerald-50 dark:bg-emerald-900/20 rounded-2xl border border-emerald-100 dark:border-emerald-800">
+                                        <div class="flex items-center gap-2 mb-2">
+                                            <i data-lucide="check-circle" class="w-4 h-4 text-emerald-600"></i>
+                                            <h4 class="font-semibold text-sm text-gray-900 dark:text-white">Vista Mar</h4>
+                                        </div>
+                                        <p class="text-xs text-emerald-700 dark:text-emerald-400 font-medium">Contrato assinado • R$ 420K</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Leads Table -->
+                        <div class="glass-card rounded-3xl overflow-hidden">
+                            <div class="p-6 border-b border-gray-200 dark:border-gray-800">
+                                <h3 class="font-semibold text-gray-900 dark:text-white">Histórico de Interações</h3>
+                            </div>
+                            <div class="overflow-x-auto">
+                                <table class="w-full">
+                                    <thead class="bg-gray-50 dark:bg-gray-900/50">
+                                        <tr>
+                                            <th class="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Cliente</th>
+                                            <th class="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Origem</th>
+                                            <th class="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Status</th>
+                                            <th class="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Valor Est.</th>
+                                            <th class="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Último Contato</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="divide-y divide-gray-200 dark:divide-gray-800">
+                                        <tr class="hover:bg-gray-50 dark:hover:bg-gray-900/30 transition-colors">
+                                            <td class="px-6 py-4">
+                                                <div class="flex items-center gap-3">
+                                                    <img class="w-8 h-8 rounded-full" src="https://ui-avatars.com/api/?name=Carlos+M">
+                                                    <div>
+                                                        <p class="font-medium text-gray-900 dark:text-white">Carlos Eduardo</p>
+                                                        <p class="text-xs text-gray-500">carlos@email.com</p>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td class="px-6 py-4"><span class="text-sm text-gray-600">Instagram</span></td>
+                                            <td class="px-6 py-4"><span class="px-2.5 py-1 bg-amber-100 text-amber-700 rounded-full text-xs font-medium">Qualificado</span></td>
+                                            <td class="px-6 py-4 font-medium text-gray-900">R$ 520.000</td>
+                                            <td class="px-6 py-4 text-sm text-gray-500">Hoje, 09:30</td>
+                                        </tr>
+                                        <tr class="hover:bg-gray-50 dark:hover:bg-gray-900/30 transition-colors">
+                                            <td class="px-6 py-4">
+                                                <div class="flex items-center gap-3">
+                                                    <img class="w-8 h-8 rounded-full" src="https://ui-avatars.com/api/?name=Marina+Gomes">
+                                                    <div>
+                                                        <p class="font-medium text-gray-900 dark:text-white">Marina Gomes</p>
+                                                        <p class="text-xs text-gray-500">marina@ hotel.com</p>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td class="px-6 py-4"><span class="text-sm text-gray-600">Indicação</span></td>
+                                            <td class="px-6 py-4"><span class="px-2.5 py-1 bg-blue-100 text-blue-700 rounded-full text-xs font-medium">Proposta</span></td>
+                                            <td class="px-6 py-4 font-medium text-gray-900">R$ 1.200.000</td>
+                                            <td class="px-6 py-4 text-sm text-gray-500">Ontem, 18:45</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- FINANCEIRO TAB -->
+                    <div id="tab-financeiro" class="tab-content hidden space-y-6 animate-slide-up">
+                        <div class="flex items-center justify-between">
+                            <h2 class="text-2xl font-semibold text-gray-900 dark:text-white">Controle Financeiro</h2>
+                            <div class="flex items-center gap-3">
+                                <button class="px-4 py-2 text-sm font-medium text-gray-600 dark:text-gray-400 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl">Exportar</button>
+                                <select class="px-4 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl text-sm">
+                                    <option>Novembro 2024</option>
+                                    <option>Outubro 2024</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Financial Cards -->
                         <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                            <div class="flex items-start gap-4 p-4 rounded-xl hover:bg-slate-50 transition-colors">
-                                <div class="w-10 h-10 rounded-full bg-emerald-100 flex items-center justify-center flex-shrink-0">
-                                    <i data-lucide="check-circle" class="w-5 h-5 text-emerald-600"></i>
+                            <div class="glass-card rounded-3xl p-6 bg-gradient-to-br from-emerald-500 to-emerald-600 text-white">
+                                <div class="flex items-center justify-between mb-4">
+                                    <div class="p-3 bg-white/20 rounded-2xl">
+                                        <i data-lucide="trending-up" class="w-6 h-6"></i>
+                                    </div>
+                                    <span class="text-sm font-medium text-emerald-100">Este mês</span>
                                 </div>
-                                <div>
-                                    <p class="text-sm font-bold text-slate-900">Pagamento recebido</p>
-                                    <p class="text-sm text-slate-600 mt-1">2ª parcela <strong>Residência Vista Mar</strong></p>
-                                    <p class="text-xs text-slate-400 mt-2">há 2 horas • R$ 126.000,00</p>
+                                <p class="text-3xl font-semibold mb-1">R$ 485.000</p>
+                                <p class="text-emerald-100 text-sm">Receitas</p>
+                            </div>
+
+                            <div class="glass-card rounded-3xl p-6 bg-gradient-to-br from-red-500 to-red-600 text-white">
+                                <div class="flex items-center justify-between mb-4">
+                                    <div class="p-3 bg-white/20 rounded-2xl">
+                                        <i data-lucide="trending-down" class="w-6 h-6"></i>
+                                    </div>
+                                    <span class="text-sm font-medium text-red-100">Este mês</span>
+                                </div>
+                                <p class="text-3xl font-semibold mb-1">R$ 142.300</p>
+                                <p class="text-red-100 text-sm">Despesas</p>
+                            </div>
+
+                            <div class="glass-card rounded-3xl p-6">
+                                <div class="flex items-center justify-between mb-4">
+                                    <div class="p-3 bg-sand-100 dark:bg-sand-900/30 rounded-2xl">
+                                        <i data-lucide="piggy-bank" class="w-6 h-6 text-sand-600 dark:text-sand-400"></i>
+                                    </div>
+                                    <span class="px-2.5 py-1 bg-emerald-100 text-emerald-700 text-xs font-bold rounded-full">+23%</span>
+                                </div>
+                                <p class="text-3xl font-semibold text-gray-900 dark:text-white mb-1">R$ 342.700</p>
+                                <p class="text-gray-500 text-sm">Lucro Líquido</p>
+                            </div>
+                        </div>
+
+                        <!-- Chart Section -->
+                        <div class="glass-card rounded-3xl p-6">
+                            <h3 class="font-semibold text-gray-900 dark:text-white mb-6">Fluxo de Caixa (Últimos 6 meses)</h3>
+                            <div class="h-64 w-full bg-gradient-to-b from-gray-50 to-white dark:from-gray-900/50 dark:to-gray-900 rounded-2xl flex items-end justify-between px-8 pb-8 pt-12 gap-4">
+                                <div class="flex-1 flex flex-col items-center gap-2 group cursor-pointer">
+                                    <div class="w-full bg-sand-200 dark:bg-sand-800 rounded-t-lg relative overflow-hidden transition-all group-hover:bg-sand-300 dark:group-hover:bg-sand-700" style="height: 60%">
+                                        <div class="absolute bottom-0 w-full bg-emerald-400 dark:bg-emerald-600 transition-all" style="height: 70%"></div>
+                                    </div>
+                                    <span class="text-xs text-gray-500">Jun</span>
+                                </div>
+                                <div class="flex-1 flex flex-col items-center gap-2 group cursor-pointer">
+                                    <div class="w-full bg-sand-200 dark:bg-sand-800 rounded-t-lg relative overflow-hidden transition-all group-hover:bg-sand-300" style="height: 75%">
+                                        <div class="absolute bottom-0 w-full bg-emerald-400 dark:bg-emerald-600" style="height: 65%"></div>
+                                    </div>
+                                    <span class="text-xs text-gray-500">Jul</span>
+                                </div>
+                                <div class="flex-1 flex flex-col items-center gap-2 group cursor-pointer">
+                                    <div class="w-full bg-sand-200 dark:bg-sand-800 rounded-t-lg relative overflow-hidden transition-all group-hover:bg-sand-300" style="height: 45%">
+                                        <div class="absolute bottom-0 w-full bg-emerald-400 dark:bg-emerald-600" style="height: 60%"></div>
+                                    </div>
+                                    <span class="text-xs text-gray-500">Ago</span>
+                                </div>
+                                <div class="flex-1 flex flex-col items-center gap-2 group cursor-pointer">
+                                    <div class="w-full bg-sand-200 dark:bg-sand-800 rounded-t-lg relative overflow-hidden transition-all group-hover:bg-sand-300" style="height: 85%">
+                                        <div class="absolute bottom-0 w-full bg-emerald-400 dark:bg-emerald-600" style="height: 72%"></div>
+                                    </div>
+                                    <span class="text-xs text-gray-500">Set</span>
+                                </div>
+                                <div class="flex-1 flex flex-col items-center gap-2 group cursor-pointer">
+                                    <div class="w-full bg-sand-200 dark:bg-sand-800 rounded-t-lg relative overflow-hidden transition-all group-hover:bg-sand-300" style="height: 70%">
+                                        <div class="absolute bottom-0 w-full bg-emerald-400 dark:bg-emerald-600" style="height: 68%"></div>
+                                    </div>
+                                    <span class="text-xs text-gray-500">Out</span>
+                                </div>
+                                <div class="flex-1 flex flex-col items-center gap-2 group cursor-pointer">
+                                    <div class="w-full bg-sand-200 dark:bg-sand-800 rounded-t-lg relative overflow-hidden transition-all ring-2 ring-sand-400" style="height: 90%">
+                                        <div class="absolute bottom-0 w-full bg-emerald-400 dark:bg-emerald-600" style="height: 75%"></div>
+                                    </div>
+                                    <span class="text-xs font-semibold text-sand-600">Nov</span>
+                                </div>
+                            </div>
+                            <div class="flex items-center justify-center gap-6 mt-4">
+                                <div class="flex items-center gap-2">
+                                    <div class="w-3 h-3 rounded-full bg-emerald-400 dark:bg-emerald-600"></div>
+                                    <span class="text-sm text-gray-600 dark:text-gray-400">Receita</span>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <div class="w-3 h-3 rounded-full bg-sand-300 dark:bg-sand-700"></div>
+                                    <span class="text-sm text-gray-600 dark:text-gray-400">Despesa</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Recent Transactions -->
+                        <div class="glass-card rounded-3xl overflow-hidden">
+                            <div class="p-6 border-b border-gray-200 dark:border-gray-800 flex items-center justify-between">
+                                <h3 class="font-semibold text-gray-900 dark:text-white">Últimas Transações</h3>
+                                <button class="text-sm text-sand-600 font-medium hover:text-sand-700">Ver todas</button>
+                            </div>
+                            <div class="divide-y divide-gray-200 dark:divide-gray-800">
+                                <div class="p-6 flex items-center justify-between hover:bg-gray-50 dark:hover:bg-gray-900/30 transition-colors">
+                                    <div class="flex items-center gap-4">
+                                        <div class="w-12 h-12 rounded-2xl bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center">
+                                            <i data-lucide="arrow-down-left" class="w-6 h-6 text-emerald-600 dark:text-emerald-400"></i>
+                                        </div>
+                                        <div>
+                                            <p class="font-semibold text-gray-900 dark:text-white">2ª Parcela - Vista Mar</p>
+                                            <p class="text-sm text-gray-500">Transferência bancária • Há 2 horas</p>
+                                        </div>
+                                    </div>
+                                    <span class="text-lg font-semibold text-emerald-600">+ R$ 126.000</span>
+                                </div>
+                                <div class="p-6 flex items-center justify-between hover:bg-gray-50 dark:hover:bg-gray-900/30 transition-colors">
+                                    <div class="flex items-center gap-4">
+                                        <div class="w-12 h-12 rounded-2xl bg-red-100 dark:bg-red-900/30 flex items-center justify-center">
+                                            <i data-lucide="arrow-up-right" class="w-6 h-6 text-red-600 dark:text-red-400"></i>
+                                        </div>
+                                        <div>
+                                            <p class="font-semibold text-gray-900 dark:text-white">Fornecedor: Resina Areia®</p>
+                                            <p class="text-sm text-gray-500">Boleto pago • Ontem</p>
+                                        </div>
+                                    </div>
+                                    <span class="text-lg font-semibold text-red-600">- R$ 34.500</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- EQUIPE TAB -->
+                    <div id="tab-equipe" class="tab-content hidden space-y-6 animate-slide-up">
+                        <div class="flex items-center justify-between">
+                            <h2 class="text-2xl font-semibold text-gray-900 dark:text-white">Equipe Técnica</h2>
+                            <button class="px-5 py-2.5 bg-sand-500 text-white rounded-xl font-medium shadow-lg shadow-sand-500/25 hover:bg-sand-600 transition-all flex items-center gap-2">
+                                <i data-lucide="user-plus" class="w-4 h-4"></i>
+                                Adicionar membro
+                            </button>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                            <!-- Member Cards -->
+                            <div class="glass-card rounded-3xl p-6 text-center hover-lift">
+                                <div class="relative inline-block mb-4">
+                                    <img class="w-24 h-24 rounded-full mx-auto border-4 border-white dark:border-gray-800 shadow-lg" src="https://ui-avatars.com/api/?name=Carlos+Mestre&background=d4a373&color=fff&size=128">
+                                    <div class="absolute bottom-1 right-1 w-6 h-6 bg-emerald-500 border-4 border-white dark:border-gray-800 rounded-full"></div>
+                                </div>
+                                <h3 class="font-semibold text-lg text-gray-900 dark:text-white">Carlos Silva</h3>
+                                <p class="text-sm text-sand-600 font-medium mb-3">Mestre de Obras</p>
+                                <div class="flex items-center justify-center gap-4 text-gray-500 text-sm">
+                                    <span class="flex items-center gap-1">
+                                        <i data-lucide="hard-hat" class="w-4 h-4"></i>
+                                        3 obras
+                                    </span>
+                                    <span class="flex items-center gap-1">
+                                        <i data-lucide="star" class="w-4 h-4"></i>
+                                        4.9
+                                    </span>
                                 </div>
                             </div>
 
-                            <div class="flex items-start gap-4 p-4 rounded-xl hover:bg-slate-50 transition-colors">
-                                <div class="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0">
-                                    <i data-lucide="message-circle" class="w-5 h-5 text-blue-600"></i>
+                            <div class="glass-card rounded-3xl p-6 text-center hover-lift">
+                                <div class="relative inline-block mb-4">
+                                    <img class="w-24 h-24 rounded-full mx-auto border-4 border-white dark:border-gray-800 shadow-lg" src="https://ui-avatars.com/api/?name=Maria+Paes&background=0ea5e9&color=fff&size=128">
+                                    <div class="absolute bottom-1 right-1 w-6 h-6 bg-emerald-500 border-4 border-white dark:border-gray-800 rounded-full"></div>
                                 </div>
-                                <div>
-                                    <p class="text-sm font-bold text-slate-900">Novo lead qualificado</p>
-                                    <p class="text-sm text-slate-600 mt-1">Via Instagram • <strong>Hotel Boutique Ilhabela</strong></p>
-                                    <p class="text-xs text-slate-400 mt-2">há 4 horas • Interesse: 120m²</p>
+                                <h3 class="font-semibold text-lg text-gray-900 dark:text-white">Maria Paes</h3>
+                                <p class="text-sm text-ocean-600 font-medium mb-3">Engenheira Civil</p>
+                                <div class="flex items-center justify-center gap-4 text-gray-500 text-sm">
+                                    <span class="flex items-center gap-1">
+                                        <i data-lucide="clipboard-list" class="w-4 h-4"></i>
+                                        5 projetos
+                                    </span>
                                 </div>
                             </div>
 
-                            <div class="flex items-start gap-4 p-4 rounded-xl hover:bg-slate-50 transition-colors">
-                                <div class="w-10 h-10 rounded-full bg-amber-100 flex items-center justify-center flex-shrink-0">
-                                    <i data-lucide="alert-triangle" class="w-5 h-5 text-amber-600"></i>
+                            <div class="glass-card rounded-3xl p-6 text-center hover-lift opacity-75">
+                                <div class="relative inline-block mb-4">
+                                    <img class="w-24 h-24 rounded-full mx-auto border-4 border-white dark:border-gray-800 shadow-lg" src="https://ui-avatars.com/api/?name=Pedro+L&background=64748b&color=fff&size=128">
+                                    <div class="absolute bottom-1 right-1 w-6 h-6 bg-gray-400 border-4 border-white dark:border-gray-800 rounded-full"></div>
                                 </div>
-                                <div>
-                                    <p class="text-sm font-bold text-slate-900">Atraso na entrega</p>
-                                    <p class="text-sm text-slate-600 mt-1"><strong>Pousada Paraíso</strong> • Concreto previsto ontem</p>
-                                    <p class="text-xs text-slate-400 mt-2">há 5 horas • Causa: Chuva forte</p>
+                                <h3 class="font-semibold text-lg text-gray-900 dark:text-white">Pedro Lopes</h3>
+                                <p class="text-sm text-gray-600 font-medium mb-3">Auxiliar</p>
+                                <span class="inline-flex items-center gap-1 text-xs text-gray-500 bg-gray-100 dark:bg-gray-800 px-3 py-1 rounded-full">
+                                    <i data-lucide="clock" class="w-3 h-3"></i>
+                                    Férias até 15/12
+                                </span>
+                            </div>
+                        </div>
+
+                        <!-- Work Schedule -->
+                        <div class="glass-card rounded-3xl p-6">
+                            <h3 class="font-semibold text-gray-900 dark:text-white mb-6">Escala da Semana</h3>
+                            <div class="grid grid-cols-7 gap-2 text-center">
+                                <div class="p-3 rounded-xl bg-gray-50 dark:bg-gray-900/50">
+                                    <div class="text-xs font-medium text-gray-500 mb-1">SEG</div>
+                                    <div class="text-lg font-semibold text-gray-900 dark:text-white">18</div>
+                                    <div class="mt-2 space-y-1">
+                                        <div class="text-xs p-1.5 bg-sand-100 text-sand-700 rounded-lg truncate">Vista Mar</div>
+                                        <div class="text-xs p-1.5 bg-ocean-100 text-ocean-700 rounded-lg truncate">Paraíso</div>
+                                    </div>
+                                </div>
+                                <div class="p-3 rounded-xl bg-sand-50 dark:bg-sand-900/20 ring-2 ring-sand-200 dark:ring-sand-800">
+                                    <div class="text-xs font-medium text-sand-600 mb-1">TER</div>
+                                    <div class="text-lg font-semibold text-sand-700 dark:text-sand-300">19</div>
+                                    <div class="mt-2 text-xs text-gray-400">Hoje</div>
+                                </div>
+                                <div class="p-3 rounded-xl bg-gray-50 dark:bg-gray-900/50 opacity-50">
+                                    <div class="text-xs font-medium text-gray-500 mb-1">QUA</div>
+                                    <div class="text-lg font-semibold text-gray-900 dark:text-white">20</div>
+                                </div>
+                                <div class="p-3 rounded-xl bg-gray-50 dark:bg-gray-900/50">
+                                    <div class="text-xs font-medium text-gray-500 mb-1">QUI</div>
+                                    <div class="text-lg font-semibold text-gray-900 dark:text-white">21</div>
+                                    <div class="mt-2 space-y-1">
+                                        <div class="text-xs p-1.5 bg-purple-100 text-purple-700 rounded-lg truncate">Reunião</div>
+                                    </div>
+                                </div>
+                                <div class="p-3 rounded-xl bg-gray-50 dark:bg-gray-900/50">
+                                    <div class="text-xs font-medium text-gray-500 mb-1">SEX</div>
+                                    <div class="text-lg font-semibold text-gray-900 dark:text-white">22</div>
+                                </div>
+                                <div class="p-3 rounded-xl bg-gray-50 dark:bg-gray-900/30">
+                                    <div class="text-xs font-medium text-gray-400 mb-1">SÁB</div>
+                                    <div class="text-lg font-semibold text-gray-400">23</div>
+                                    <div class="mt-2 text-xs text-gray-400">Folga</div>
+                                </div>
+                                <div class="p-3 rounded-xl bg-gray-50 dark:bg-gray-900/30">
+                                    <div class="text-xs font-medium text-gray-400 mb-1">DOM</div>
+                                    <div class="text-lg font-semibold text-gray-400">24</div>
+                                    <div class="mt-2 text-xs text-gray-400">Folga</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- CALENDÁRIO TAB -->
+                    <div id="tab-calendario" class="tab-content hidden space-y-6 animate-slide-up">
+                        <div class="flex items-center justify-between">
+                            <h2 class="text-2xl font-semibold text-gray-900 dark:text-white">Agenda de Visitas</h2>
+                            <div class="flex items-center gap-2">
+                                <button class="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl transition-colors">
+                                    <i data-lucide="chevron-left" class="w-5 h-5"></i>
+                                </button>
+                                <span class="font-medium text-lg">Novembro 2024</span>
+                                <button class="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl transition-colors">
+                                    <i data-lucide="chevron-right" class="w-5 h-5"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="glass-card rounded-3xl overflow-hidden">
+                            <div class="grid grid-cols-7 border-b border-gray-200 dark:border-gray-800">
+                                <div class="p-4 text-center text-sm font-medium text-gray-500">Dom</div>
+                                <div class="p-4 text-center text-sm font-medium text-gray-500">Seg</div>
+                                <div class="p-4 text-center text-sm font-medium text-gray-500">Ter</div>
+                                <div class="p-4 text-center text-sm font-medium text-gray-500">Qua</div>
+                                <div class="p-4 text-center text-sm font-medium text-gray-500">Qui</div>
+                                <div class="p-4 text-center text-sm font-medium text-gray-500">Sex</div>
+                                <div class="p-4 text-center text-sm font-medium text-gray-500">Sáb</div>
+                            </div>
+                            <div class="grid grid-cols-7 auto-rows-fr">
+                                <!-- Empty days -->
+                                <div class="p-2 border-b border-r border-gray-200 dark:border-gray-800 h-32 bg-gray-50/50 dark:bg-gray-900/20"></div>
+                                <div class="p-2 border-b border-r border-gray-200 dark:border-gray-800 h-32">
+                                    <div class="text-sm text-gray-700 dark:text-gray-300 mb-1">1</div>
+                                    <div class="text-xs p-1.5 bg-sand-100 text-sand-700 rounded-lg mb-1 truncate">Vista Mar</div>
+                                </div>
+                                <div class="p-2 border-b border-r border-gray-200 dark:border-gray-800 h-32">
+                                    <div class="text-sm text-gray-700 dark:text-gray-300 mb-1">2</div>
+                                </div>
+                                <div class="p-2 border-b border-r border-gray-200 dark:border-gray-800 h-32">
+                                    <div class="text-sm text-gray-700 dark:text-gray-300 mb-1">3</div>
+                                </div>
+                                <div class="p-2 border-b border-r border-gray-200 dark:border-gray-800 h-32">
+                                    <div class="text-sm text-gray-700 dark:text-gray-300 mb-1">4</div>
+                                    <div class="text-xs p-1.5 bg-ocean-100 text-ocean-700 rounded-lg mb-1 truncate">Reunião Hotel</div>
+                                </div>
+                                <div class="p-2 border-b border-r border-gray-200 dark:border-gray-800 h-32">
+                                    <div class="text-sm text-gray-700 dark:text-gray-300 mb-1">5</div>
+                                </div>
+                                <div class="p-2 border-b border-r border-gray-200 dark:border-gray-800 h-32 bg-gray-50/50 dark:bg-gray-900/20">
+                                    <div class="text-sm text-gray-400">6</div>
+                                </div>
+
+                                <!-- Week 3 -->
+                                <div class="p-2 border-b border-r border-gray-200 dark:border-gray-800 h-32 bg-gray-50/50 dark:bg-gray-900/20">
+                                    <div class="text-sm text-gray-400">27</div>
+                                </div>
+                                <div class="p-2 border-b border-r border-gray-200 dark:border-gray-800 h-32 bg-gray-50/50 dark:bg-gray-900/20">
+                                    <div class="text-sm text-gray-400">28</div>
+                                </div>
+                                <div class="p-2 border-b border-r border-gray-200 dark:border-gray-800 h-32">
+                                    <div class="text-sm font-bold text-sand-600 bg-sand-100 w-7 h-7 flex items-center justify-center rounded-full">19</div>
+                                    <div class="mt-1 text-xs p-1.5 bg-amber-100 text-amber-700 rounded-lg border border-amber-200">
+                                        <strong>14:00</strong> - Visita Carlos E.
+                                        <div class="text-amber-600 mt-0.5">R$ 520K potencial</div>
+                                    </div>
+                                    <div class="text-xs p-1.5 bg-sand-100 text-sand-700 rounded-lg mt-1 truncate">16:30 - Vista Mar</div>
+                                </div>
+                                <div class="p-2 border-b border-r border-gray-200 dark:border-gray-800 h-32">
+                                    <div class="text-sm text-gray-700 dark:text-gray-300">20</div>
+                                </div>
+                                <div class="p-2 border-b border-r border-gray-200 dark:border-gray-800 h-32">
+                                    <div class="text-sm text-gray-700 dark:text-gray-300">21</div>
+                                    <div class="text-xs p-1.5 bg-purple-100 text-purple-700 rounded-lg truncate">Reunião equipe</div>
+                                </div>
+                                <div class="p-2 border-b border-r border-gray-200 dark:border-gray-800 h-32">
+                                    <div class="text-sm text-gray-700 dark:text-gray-300">22</div>
+                                </div>
+                                <div class="p-2 border-b border-r border-gray-200 dark:border-gray-800 h-32 bg-gray-50/50 dark:bg-gray-900/20">
+                                    <div class="text-sm text-gray-400">23</div>
                                 </div>
                             </div>
                         </div>
@@ -641,243 +1293,122 @@
 
                 </div>
 
-                <!-- OBRAS TAB (Hidden by default) -->
-                <div id="tab-obras" class="hidden fade-in max-w-7xl mx-auto">
-                    <div class="flex items-center justify-between mb-8">
-                        <div>
-                            <h2 class="text-2xl font-bold text-slate-900">Gestão de Obras</h2>
-                            <p class="text-slate-500">Acompanhamento detalhado de projetos</p>
-                        </div>
-                        <button class="px-4 py-2 bg-sand-500 text-white rounded-xl font-semibold text-sm shadow-lg shadow-sand-500/25 hover:bg-sand-600 transition-colors flex items-center gap-2">
-                            <i data-lucide="plus" class="w-4 h-4"></i>
-                            Nova Obra
-                        </button>
-                    </div>
-
-                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                        <!-- Obra Card 1 -->
-                        <div class="glass-card rounded-2xl overflow-hidden hover-lift">
-                            <div class="h-32 bg-gradient-to-br from-sand-200 to-sand-300 relative">
-                                <div class="absolute top-4 right-4 px-3 py-1 bg-white/90 backdrop-blur text-sand-700 text-xs font-bold rounded-full">
-                                    78% Concluído
-                                </div>
-                                <div class="absolute bottom-4 left-4">
-                                    <div class="flex -space-x-2">
-                                        <img class="w-8 h-8 rounded-full border-2 border-white" src="https://ui-avatars.com/api/?name=João&background=random">
-                                        <img class="w-8 h-8 rounded-full border-2 border-white" src="https://ui-avatars.com/api/?name=Maria&background=random">
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="p-5">
-                                <h3 class="font-bold text-lg text-slate-900 mb-1">Residência Vista Mar</h3>
-                                <p class="text-sm text-slate-500 mb-4">Praia de Camburi • 80m²</p>
-                                
-                                <div class="space-y-3">
-                                    <div class="flex justify-between text-sm">
-                                        <span class="text-slate-600">Valor:</span>
-                                        <span class="font-bold text-slate-900">R$ 420.000</span>
-                                    </div>
-                                    <div class="flex justify-between text-sm">
-                                        <span class="text-slate-600">Fase atual:</span>
-                                        <span class="font-semibold text-emerald-600">Revestimento Areia®</span>
-                                    </div>
-                                    <div class="flex justify-between text-sm">
-                                        <span class="text-slate-600">Entrega:</span>
-                                        <span class="font-semibold text-amber-600">20 dias</span>
-                                    </div>
-                                </div>
-
-                                <div class="mt-5 pt-5 border-t border-slate-100 flex gap-2">
-                                    <button class="flex-1 py-2 text-sm font-semibold text-sand-600 bg-sand-50 rounded-lg hover:bg-sand-100 transition-colors">Detalhes</button>
-                                    <button class="flex-1 py-2 text-sm font-semibold text-white bg-sand-500 rounded-lg hover:bg-sand-600 transition-colors">Atualizar</button>
-                                </div>
+                <!-- Footer -->
+                <footer class="mt-12 pt-8 pb-8 border-t border-gray-200 dark:border-gray-800">
+                    <div class="flex flex-col md:flex-row items-center justify-between gap-6">
+                        <div class="flex items-center gap-4">
+                            <a href="https://apxlbs.com" target="_blank" class="block hover:opacity-80 transition-opacity">
+                                <img src="/mnt/kimi/upload/powered by apxlbs - black.png" alt="Powered by APXLBS" class="h-6 dark:hidden">
+                                <img src="/mnt/kimi/upload/powered by apxlbs - white.png" alt="Powered by APXLBS" class="h-6 hidden dark:block">
+                            </a>
+                            <div class="h-4 w-px bg-gray-300 dark:bg-gray-700 hidden md:block"></div>
+                            <div class="text-xs text-gray-500 dark:text-gray-400 text-center md:text-left space-y-1">
+                                <p>© 2026 Obra360. Todos os direitos reservados</p>
+                                <p>DBE11 LTDA • CNPJ: 53.903.617/0001-83</p>
                             </div>
                         </div>
-
-                        <!-- Obra Card 2 -->
-                        <div class="glass-card rounded-2xl overflow-hidden hover-lift">
-                            <div class="h-32 bg-gradient-to-br from-ocean-200 to-ocean-300 relative">
-                                <div class="absolute top-4 right-4 px-3 py-1 bg-white/90 backdrop-blur text-ocean-700 text-xs font-bold rounded-full">
-                                    45% Concluído
-                                </div>
-                            </div>
-                            <div class="p-5">
-                                <h3 class="font-bold text-lg text-slate-900 mb-1">Pousada Paraíso Natural</h3>
-                                <p class="text-sm text-slate-500 mb-4">Ilhabela • 150m²</p>
-                                
-                                <div class="space-y-3">
-                                    <div class="flex justify-between text-sm">
-                                        <span class="text-slate-600">Valor:</span>
-                                        <span class="font-bold text-slate-900">R$ 890.000</span>
-                                    </div>
-                                    <div class="flex justify-between text-sm">
-                                        <span class="text-slate-600">Fase atual:</span>
-                                        <span class="font-semibold text-blue-600">Concretagem</span>
-                                    </div>
-                                    <div class="flex justify-between text-sm">
-                                        <span class="text-slate-600">Entrega:</span>
-                                        <span class="font-semibold text-slate-600">60 dias</span>
-                                    </div>
-                                </div>
-
-                                <div class="mt-5 pt-5 border-t border-slate-100 flex gap-2">
-                                    <button class="flex-1 py-2 text-sm font-semibold text-ocean-600 bg-ocean-50 rounded-lg hover:bg-ocean-100 transition-colors">Detalhes</button>
-                                    <button class="flex-1 py-2 text-sm font-semibold text-white bg-ocean-500 rounded-lg hover:bg-ocean-600 transition-colors">Atualizar</button>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Obra Card 3 -->
-                        <div class="glass-card rounded-2xl overflow-hidden hover-lift opacity-75">
-                            <div class="h-32 bg-gradient-to-br from-slate-200 to-slate-300 relative">
-                                <div class="absolute top-4 right-4 px-3 py-1 bg-white/90 backdrop-blur text-slate-700 text-xs font-bold rounded-full">
-                                    15% Concluído
-                                </div>
-                                <div class="absolute inset-0 flex items-center justify-center">
-                                    <span class="px-3 py-1 bg-amber-500 text-white text-xs font-bold rounded-full">Aguardando material</span>
-                                </div>
-                            </div>
-                            <div class="p-5">
-                                <h3 class="font-bold text-lg text-slate-900 mb-1">Chácara do Lago</h3>
-                                <p class="text-sm text-slate-500 mb-4">São Roque • 45m²</p>
-                                
-                                <div class="space-y-3">
-                                    <div class="flex justify-between text-sm">
-                                        <span class="text-slate-600">Valor:</span>
-                                        <span class="font-bold text-slate-900">R$ 285.000</span>
-                                    </div>
-                                    <div class="flex justify-between text-sm">
-                                        <span class="text-slate-600">Fase atual:</span>
-                                        <span class="font-semibold text-amber-600">Fundação/Escavação</span>
-                                    </div>
-                                    <div class="flex justify-between text-sm">
-                                        <span class="text-slate-600">Entrega:</span>
-                                        <span class="font-semibold text-slate-600">90 dias</span>
-                                    </div>
-                                </div>
-
-                                <div class="mt-5 pt-5 border-t border-slate-100">
-                                    <button class="w-full py-2 text-sm font-semibold text-slate-600 bg-slate-100 rounded-lg">Ver detalhes</button>
-                                </div>
-                            </div>
+                        <div class="flex items-center gap-6 text-xs text-gray-500 dark:text-gray-400">
+                            <a href="#" class="hover:text-sand-600 dark:hover:text-sand-400 transition-colors">Termos de Uso</a>
+                            <a href="#" class="hover:text-sand-600 dark:hover:text-sand-400 transition-colors">Privacidade</a>
+                            <a href="#" class="hover:text-sand-600 dark:hover:text-sand-400 transition-colors">Suporte</a>
                         </div>
                     </div>
-                </div>
-
-                <!-- Other tabs placeholders -->
-                <div id="tab-leads" class="hidden fade-in max-w-7xl mx-auto">
-                    <div class="glass-card rounded-2xl p-12 text-center">
-                        <div class="w-20 h-20 bg-sand-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                            <i data-lucide="crown" class="w-10 h-10 text-sand-600"></i>
-                        </div>
-                        <h3 class="text-xl font-bold text-slate-900 mb-2">Módulo de Leads Premium</h3>
-                        <p class="text-slate-500 max-w-md mx-auto">Sistema completo de CRM para acompanhamento de leads qualificados, histórico de interações e propostas personalizadas.</p>
-                        <button class="mt-6 px-6 py-3 bg-sand-500 text-white rounded-xl font-semibold">Acessar CRM completo</button>
-                    </div>
-                </div>
+                </footer>
 
             </div>
         </main>
     </div>
 
     <script>
-        // Initialize icons
+        // Initialize Lucide icons
         lucide.createIcons();
 
-        // Login function
-        function enterDashboard() {
-            const loginScreen = document.getElementById('loginScreen');
-            loginScreen.style.opacity = '0';
-            loginScreen.style.transition = 'opacity 0.4s ease';
-            
-            setTimeout(() => {
-                loginScreen.classList.add('hidden');
-                document.getElementById('app').classList.remove('hidden');
-                
-                // Animate progress bars
-                setTimeout(() => {
-                    document.querySelectorAll('.progress-bar').forEach(bar => {
-                        const width = bar.style.width;
-                        bar.style.width = '0';
-                        setTimeout(() => bar.style.width = width, 100);
-                    });
-                    
-                    // Animate numbers
-                    animateNumbers();
-                }, 100);
-            }, 400);
+        // Theme Toggle
+        function toggleTheme() {
+            const html = document.documentElement;
+            if (html.classList.contains('dark')) {
+                html.classList.remove('dark');
+                localStorage.setItem('theme', 'light');
+            } else {
+                html.classList.add('dark');
+                localStorage.setItem('theme', 'dark');
+            }
         }
 
-        // Tab switching
-        function switchTab(tab) {
+        // Check saved theme
+        if (localStorage.getItem('theme') === 'dark' || (!localStorage.getItem('theme') && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            document.documentElement.classList.add('dark');
+        }
+
+        // Login
+        function enterApp() {
+            const loginScreen = document.getElementById('loginScreen');
+            loginScreen.style.opacity = '0';
+            setTimeout(() => {
+                loginScreen.classList.add('hidden');
+                document.getElementById('mainApp').classList.remove('hidden');
+                animateProgressBars();
+            }, 500);
+        }
+
+        // Tab Switching
+        function switchTab(tabName) {
             // Update nav buttons
             document.querySelectorAll('.nav-item').forEach(btn => {
-                btn.classList.remove('active');
-                btn.classList.add('text-slate-600');
+                btn.classList.remove('active', 'bg-sand-50', 'text-sand-800', 'dark:bg-sand-500/20', 'dark:text-sand-300');
+                btn.classList.add('text-gray-600', 'dark:text-gray-400');
             });
             
-            if (event && event.currentTarget) {
-                event.currentTarget.classList.add('active');
-                event.currentTarget.classList.remove('text-slate-600');
+            const activeBtn = document.querySelector(`button[data-tab="${tabName}"]`);
+            if (activeBtn) {
+                activeBtn.classList.remove('text-gray-600', 'dark:text-gray-400');
+                activeBtn.classList.add('active', 'bg-sand-50', 'text-sand-800', 'dark:bg-sand-500/20', 'dark:text-sand-300');
             }
-            
+
             // Hide all tabs
-            ['dashboard', 'obras', 'leads', 'financeiro', 'equipe', 'calendario'].forEach(t => {
-                const el = document.getElementById(`tab-${t}`);
-                if (el) el.classList.add('hidden');
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.add('hidden');
             });
-            
+
             // Show selected tab
-            const selectedTab = document.getElementById(`tab-${tab}`);
+            const selectedTab = document.getElementById(`tab-${tabName}`);
             if (selectedTab) {
                 selectedTab.classList.remove('hidden');
-                // Re-animate progress bars in active tab
-                setTimeout(() => {
-                    selectedTab.querySelectorAll('.progress-bar').forEach(bar => {
-                        const width = bar.style.width;
-                        bar.style.width = '0';
-                        setTimeout(() => bar.style.width = width, 50);
-                    });
-                }, 100);
+                animateProgressBars();
             }
-            
+
             // Update title
             const titles = {
                 'dashboard': 'Visão Geral da Operação',
                 'obras': 'Obras em Andamento',
-                'leads': 'Leads Premium',
+                'leads': 'Leads VIP',
                 'financeiro': 'Controle Financeiro',
                 'equipe': 'Equipe Técnica',
                 'calendario': 'Agenda de Visitas'
             };
-            const titleEl = document.getElementById('pageTitle');
-            if (titleEl) titleEl.textContent = titles[tab] || 'Dashboard';
+            document.getElementById('pageTitle').textContent = titles[tabName] || 'Dashboard';
         }
 
-        // Number counter animation
-        function animateNumbers() {
-            document.querySelectorAll('.money-counter').forEach(el => {
-                const final = el.textContent;
-                if (final.includes('R$')) {
-                    // Keep the R$ format but animate if it was a plain number
-                    return; // Simplified for demo
-                }
-            });
+        // Animate progress bars
+        function animateProgressBars() {
+            setTimeout(() => {
+                document.querySelectorAll('.progress-fill').forEach(bar => {
+                    const width = bar.style.width;
+                    bar.style.width = '0';
+                    setTimeout(() => bar.style.width = width, 50);
+                });
+            }, 100);
         }
 
-        // Simulate new lead modal
-        function openNewLeadModal() {
-            alert('Modal de novo lead seria aberto aqui com formulário completo de qualificação');
+        // Mobile menu toggle
+        function toggleMobileMenu() {
+            const sidebar = document.querySelector('aside');
+            sidebar.classList.toggle('hidden');
         }
 
-        // Add interactive hover effects to obra cards
-        document.querySelectorAll('.group').forEach(card => {
-            card.addEventListener('mouseenter', function() {
-                this.style.transform = 'translateY(-4px)';
-            });
-            card.addEventListener('mouseleave', function() {
-                this.style.transform = 'translateY(0)';
-            });
+        // Initialize animations on load
+        window.addEventListener('load', () => {
+            // Any additional initialization
         });
     </script>
 </body>
